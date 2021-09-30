@@ -1,0 +1,39 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  push_to_registry:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Copy folder content recursively to remote
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: .
+          remote: /home/ubuntu/my-freqtrade
+          host: ${{ secrets.DOCKER_SSH_HOST }}
+          username: ${{ secrets.DOCKER_SSH_USERNAME }}
+          privateKey: ${{ secrets.DOCKER_SSH_PRIVATE_KEY}}
+          concurrency: 10
+
+      - name: Start Deployment
+        uses: wshihadeh/docker-deployment-action@master
+        with:
+          remote_docker_host: ${{ secrets.DOCKER_HOST }}
+          ssh_private_key: ${{ secrets.DOCKER_SSH_PRIVATE_KEY }}
+          ssh_public_key: ${{ secrets.DOCKER_SSH_PUBLIC_KEY }}
+          deployment_mode: docker-compose
+          deploy_path: /home/ubuntu/my-freqtrade
+          copy_stack_file: true
+          stack_file_name: docker-compose.yml
+          pull_images_first: true
+          keep_files: 3
+          args: up -d --force-recreate
+

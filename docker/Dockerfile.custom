@@ -1,0 +1,5 @@
+FROM freqtradeorg/freqtrade:stable
+
+COPY --chown=1000:1000  requirements.txt /freqtrade
+
+RUN pip install --user --no-cache-dir --no-build-isolation -r /freqtrade/requirements.txt
