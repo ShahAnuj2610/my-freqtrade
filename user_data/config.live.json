@@ -22,11 +22,7 @@
   "exchange": {
     "name": "binance",
     "ccxt_config": {
-      "enableRateLimit": true
-    },
-    "ccxt_async_config": {
-      "enableRateLimit": true,
-      "rateLimit": 150
+      "enableRateLimit": false
     },
     "pair_whitelist": []
   },
