@@ -1,0 +1,61 @@
+{
+  "strategy_name": "BB_RPB_TSL",
+  "params": {
+    "buy": {
+      "buy_bb_delta": 0.025,
+      "buy_bb_factor": 0.999,
+      "buy_bb_width": 0.095,
+      "buy_btc_safe": -289,
+      "buy_btc_safe_1d": -0.05,
+      "buy_cci": -116,
+      "buy_cci_length": 25,
+      "buy_closedelta": 12.148,
+      "buy_ema_diff": 0.022,
+      "buy_ema_high": 1.084,
+      "buy_ema_high_2": 1.087,
+      "buy_ema_low": 0.942,
+      "buy_ema_low_2": 0.97,
+      "buy_ewo": -5.585,
+      "buy_ewo_high": 2.055,
+      "buy_rmi": 49,
+      "buy_rmi_length": 17,
+      "buy_rsi": 35,
+      "buy_rsi_fast": 45,
+      "buy_srsi_fk": 32,
+      "buy_threshold": 0.003,
+      "buy_adx": 20,
+      "buy_ema_cofi": 0.98,
+      "buy_fastd": 21,
+      "buy_fastk": 24
+    },
+    "sell": {
+      "sell_btc_safe": -389,
+      "sell_cmf": -0.046,
+      "sell_ema": 0.988,
+      "sell_ema_close_delta": 0.022,
+      "pHSL": -0.197,
+      "pPF_1": 0.017,
+      "pPF_2": 0.041,
+      "pSL_1": 0.011,
+      "pSL_2": 0.032
+    },
+    "protection": {},
+    "roi": {
+      "0": 0.047999999999999994,
+      "21": 0.034999999999999996,
+      "57": 0.022,
+      "150": 0
+    },
+    "stoploss": {
+      "stoploss": -0.196
+    },
+    "trailing": {
+      "trailing_stop": true,
+      "trailing_stop_positive": 0.107,
+      "trailing_stop_positive_offset": 0.16599999999999998,
+      "trailing_only_offset_is_reached": true
+    }
+  },
+  "ft_stratparam_v": 1,
+  "export_time": "2021-10-14 10:22:17.799911+00:00"
+}

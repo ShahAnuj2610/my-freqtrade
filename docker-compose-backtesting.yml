@@ -1,0 +1,68 @@
+---
+version: '3'
+services:
+  hyperopt:
+    # image: freqtradeorg/freqtrade:develop
+    # Use plotting image
+    # image: freqtradeorg/freqtrade:develop_plot
+    # Build step - only needed when additional dependencies are needed
+    build:
+      context: .
+      dockerfile: "./docker/Dockerfile.custom"
+    container_name: freqtrade-hyperopt
+    volumes:
+      - "./user_data:/freqtrade/user_data"
+    # Expose api on port 8080 (localhost only)
+    # Please read the https://www.freqtrade.io/en/latest/rest-api/ documentation
+    # before enabling this.
+    # Default command used when running `docker compose up`
+    command: >
+      hyperopt
+      --timerange ${TIMERANGE:-20210801-20210930}
+      --spaces buy sell roi stoploss trailing
+      --strategy BB_RPB_TSL
+      --hyperopt-loss ShortTradeDurHyperOptLoss
+      --config user_data/data/pairlists.json
+      --config user_data/data/${EXCHANGE:-binance}-usdt-static.json
+      --max-open-trades ${MAX_OPEN_TRADES:-5}
+      --stake-amount ${STAKE_AMOUNT:-unlimited}
+      --job-workers -2
+      -e 500
+
+  backtest:
+    # image: freqtradeorg/freqtrade:develop
+    # Use plotting image
+    # image: freqtradeorg/freqtrade:develop_plot
+    # Build step - only needed when additional dependencies are needed
+    build:
+      context: .
+      dockerfile: "./docker/Dockerfile.custom"
+    container_name: freqtrade-backtest
+    volumes:
+      - "./user_data:/freqtrade/user_data"
+    # Expose api on port 8080 (localhost only)
+    # Please read the https://www.freqtrade.io/en/latest/rest-api/ documentation
+    # before enabling this.
+    # Default command used when running `docker compose up`
+    command: >
+      backtesting
+      --strategy-list BB_RPB_TSL
+      --timerange ${TIMERANGE:-20211001-20211013}
+      --config user_data/data/pairlists.json
+      --config user_data/data/${EXCHANGE:-binance}-usdt-static.json
+      --max-open-trades ${MAX_OPEN_TRADES:-5}
+      --stake-amount ${STAKE_AMOUNT:-unlimited}
+  download-data:
+    build:
+      context: .
+      dockerfile: "./docker/Dockerfile.custom"
+    container_name: freqtrade-download-data
+    volumes:
+      - "./user_data:/freqtrade/user_data"
+    command: >
+      download-data
+      --timerange ${START_DATE:-20210701}-${END_DATE:-20211030}
+      --timeframe 5m 1h 1d
+      --datadir user_data/data/${EXCHANGE:-binance}
+      --config user_data/data/pairlists.json
+      --config user_data/data/${EXCHANGE:-binance}-usdt-static.json

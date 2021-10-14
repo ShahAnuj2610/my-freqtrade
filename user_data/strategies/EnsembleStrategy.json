@@ -1,0 +1,33 @@
+{
+  "strategy_name": "EnsembleStrategy",
+  "params": {
+    "stoploss": {
+      "stoploss": -0.99
+    },
+    "trailing": {
+      "trailing_stop": false,
+      "trailing_stop_positive": 0.01,
+      "trailing_stop_positive_offset": 0.025,
+      "trailing_only_offset_is_reached": false
+    },
+    "buy": {
+      "buy_action_diff_threshold": 0.45,
+      "buy_strategies": 3844
+    },
+    "sell": {
+      "sell_HSL": -0.176,
+      "sell_PF_1": 0.009,
+      "sell_PF_2": 0.055,
+      "sell_SL_1": 0.015,
+      "sell_SL_2": 0.046
+    },
+    "roi": {
+      "0": 0.057999999999999996,
+      "38": 0.046,
+      "84": 0.033,
+      "160": 0
+    }
+  },
+  "ft_stratparam_v": 1,
+  "export_time": "2021-08-20 19:04:35.909643+00:00"
+}
