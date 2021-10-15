@@ -1,0 +1,60 @@
+{
+  "strategy_name": "CombinedBinHAndClucV8Hyper",
+  "params": {
+    "buy": {
+      "buy_dip_threshold_0": 0.015,
+      "buy_dip_threshold_1": 0.12,
+      "buy_dip_threshold_2": 0.28,
+      "buy_dip_threshold_3": 0.36,
+      "buy_ema_open_mult_1": 0.02,
+      "buy_volume_1": 2.0,
+      "buy_bb20_close_bblowerband": 0.91,
+      "buy_bb20_volume": 24,
+      "buy_bb40_bbdelta_close": 0.029,
+      "buy_bb40_closedelta_close": 0.01,
+      "buy_bb40_tail_bbdelta": 0.289,
+      "buy_mfi": 41.96,
+      "buy_min_inc": 0.04,
+      "buy_rsi": 32.54,
+      "buy_rsi_1h": 40.68,
+      "buy_rsi_diff": 46.92
+    },
+    "sell": {
+      "sell_custom_roi_profit_1": 0.01,
+      "sell_custom_roi_profit_2": 0.04,
+      "sell_custom_roi_profit_3": 0.08,
+      "sell_custom_roi_profit_4": 0.14,
+      "sell_custom_roi_profit_5": 0.04,
+      "sell_custom_roi_rsi_1": 50,
+      "sell_custom_roi_rsi_2": 50,
+      "sell_custom_roi_rsi_3": 56,
+      "sell_custom_roi_rsi_4": 58,
+      "sell_custom_stoploss_1": -0.05,
+      "sell_trail_down_1": 0.03,
+      "sell_trail_down_2": 0.015,
+      "sell_trail_profit_max_1": 0.4,
+      "sell_trail_profit_max_2": 0.1,
+      "sell_trail_profit_min_1": 0.1,
+      "sell_trail_profit_min_2": 0.02,
+      "sell_rsi_main": 74.94
+    },
+    "protection": {},
+    "roi": {
+      "0": 0.065,
+      "10": 0.034,
+      "23": 0.021,
+      "89": 0
+    },
+    "stoploss": {
+      "stoploss": -0.042
+    },
+    "trailing": {
+      "trailing_stop": true,
+      "trailing_stop_positive": 0.305,
+      "trailing_stop_positive_offset": 0.353,
+      "trailing_only_offset_is_reached": true
+    }
+  },
+  "ft_stratparam_v": 1,
+  "export_time": "2021-10-14 19:51:26.366608+00:00"
+}
