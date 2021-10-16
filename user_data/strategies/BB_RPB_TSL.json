@@ -24,8 +24,8 @@
       "buy_srsi_fk": 32,
       "buy_threshold": 0.003,
       "buy_adx": 20,
-      "buy_ema_cofi": 0.98,
-      "buy_fastd": 21,
+      "buy_ema_cofi": 0.979,
+      "buy_fastd": 24,
       "buy_fastk": 24
     },
     "sell": {
@@ -33,29 +33,29 @@
       "sell_cmf": -0.046,
       "sell_ema": 0.988,
       "sell_ema_close_delta": 0.022,
-      "pHSL": -0.197,
-      "pPF_1": 0.017,
-      "pPF_2": 0.041,
-      "pSL_1": 0.011,
-      "pSL_2": 0.032
+      "pHSL": -0.157,
+      "pPF_1": 0.015,
+      "pPF_2": 0.078,
+      "pSL_1": 0.008,
+      "pSL_2": 0.042
     },
     "protection": {},
     "roi": {
-      "0": 0.047999999999999994,
-      "21": 0.034999999999999996,
-      "57": 0.022,
-      "150": 0
+      "0": 0.043,
+      "39": 0.028,
+      "69": 0.012,
+      "177": 0
     },
     "stoploss": {
-      "stoploss": -0.196
+      "stoploss": -0.226
     },
     "trailing": {
       "trailing_stop": true,
-      "trailing_stop_positive": 0.107,
-      "trailing_stop_positive_offset": 0.16599999999999998,
+      "trailing_stop_positive": 0.296,
+      "trailing_stop_positive_offset": 0.354,
       "trailing_only_offset_is_reached": true
     }
   },
   "ft_stratparam_v": 1,
-  "export_time": "2021-10-14 10:22:17.799911+00:00"
+  "export_time": "2021-10-16 10:27:50.354977+00:00"
 }
