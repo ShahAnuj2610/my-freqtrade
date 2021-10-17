@@ -1,0 +1,52 @@
+{
+  "strategy_name": "Solipsis5",
+  "params": {
+    "buy": {
+      "base_ma_streak": 1,
+      "base_mp": 40,
+      "base_rmi_max": 35,
+      "base_rmi_min": 26,
+      "base_rmi_streak": 4,
+      "base_trigger": "none",
+      "inf_pct_adr": 0.728,
+      "xbtc_base_rmi": 36,
+      "xbtc_guard": "lazy",
+      "xtra_base_fiat_rmi": 68,
+      "xtra_base_stake_rmi": 34
+    },
+    "sell": {
+      "csell_endtrend_respect_roi": false,
+      "csell_pullback": false,
+      "csell_pullback_amount": 0.029,
+      "csell_pullback_respect_roi": false,
+      "csell_roi_end": 0.0,
+      "csell_roi_start": 0.01,
+      "csell_roi_time": 1321,
+      "csell_roi_type": "step",
+      "csell_trend_type": "any",
+      "cstop_bail_how": "none",
+      "cstop_bail_roc": -3.498,
+      "cstop_bail_time": 301,
+      "cstop_bail_time_trend": true,
+      "cstop_loss_threshold": -0.019
+    },
+    "protection": {},
+    "roi": {
+      "0": 0.177,
+      "33": 0.08299999999999999,
+      "67": 0.023,
+      "165": 0
+    },
+    "stoploss": {
+      "stoploss": -0.325
+    },
+    "trailing": {
+      "trailing_stop": true,
+      "trailing_stop_positive": 0.145,
+      "trailing_stop_positive_offset": 0.22799999999999998,
+      "trailing_only_offset_is_reached": false
+    }
+  },
+  "ft_stratparam_v": 1,
+  "export_time": "2021-10-16 15:44:23.009769+00:00"
+}
