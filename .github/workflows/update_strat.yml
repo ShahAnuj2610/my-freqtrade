@@ -18,6 +18,10 @@ jobs:
           mv blacklist-binance.json user_data
           curl -O https://raw.githubusercontent.com/iterativv/NostalgiaForInfinity/main/configs/pairlist-volume-binance-usdt.json && \
           mv pairlist-volume-binance-usdt.json user_data
+          curl -O https://raw.githubusercontent.com/iterativv/NostalgiaForInfinityData/main/pairlists.json && \
+          mv pairlists.json user_data/data
+          curl -O https://raw.githubusercontent.com/iterativv/NostalgiaForInfinityData/main/binance-usdt-static.json && \
+          mv binance-usdt-static.json user_data/data
       - name: Check for modified files
         id: git-check
         run: echo ::set-output name=modified::$([ -z "`git status --porcelain`" ] && echo "false" || echo "true")
