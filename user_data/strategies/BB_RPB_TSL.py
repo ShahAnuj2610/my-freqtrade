@@ -140,30 +140,30 @@ class BB_RPB_TSL(IStrategy):
 
     ## Buy params
 
-    is_optimize_dip = False
+    is_optimize_dip = True
     buy_rmi = IntParameter(30, 50, default=35, optimize= is_optimize_dip)
     buy_cci = IntParameter(-135, -90, default=-133, optimize= is_optimize_dip)
     buy_srsi_fk = IntParameter(30, 50, default=25, optimize= is_optimize_dip)
     buy_cci_length = IntParameter(25, 45, default=25, optimize = is_optimize_dip)
     buy_rmi_length = IntParameter(8, 20, default=8, optimize = is_optimize_dip)
 
-    is_optimize_break = False
+    is_optimize_break = True
     buy_bb_width = DecimalParameter(0.065, 0.135, default=0.095, optimize = is_optimize_break)
     buy_bb_delta = DecimalParameter(0.018, 0.035, default=0.025, optimize = is_optimize_break)
 
-    is_optimize_local_dip = False
+    is_optimize_local_dip = True
     buy_ema_diff = DecimalParameter(0.022, 0.027, default=0.025, optimize = is_optimize_local_dip)
-    buy_bb_factor = DecimalParameter(0.990, 0.999, default=0.995, optimize = False)
+    buy_bb_factor = DecimalParameter(0.990, 0.999, default=0.995, optimize = True)
     buy_closedelta = DecimalParameter(12.0, 18.0, default=15.0, optimize = is_optimize_local_dip)
 
-    is_optimize_ewo = False
-    buy_rsi_fast = IntParameter(35, 50, default=45, optimize = False)
-    buy_rsi = IntParameter(15, 30, default=35, optimize = False)
+    is_optimize_ewo = True
+    buy_rsi_fast = IntParameter(35, 50, default=45, optimize = True)
+    buy_rsi = IntParameter(15, 30, default=35, optimize = True)
     buy_ewo = DecimalParameter(-6.0, 5, default=-5.585, optimize = is_optimize_ewo)
     buy_ema_low = DecimalParameter(0.9, 0.99, default=0.942 , optimize = is_optimize_ewo)
     buy_ema_high = DecimalParameter(0.95, 1.2, default=1.084 , optimize = is_optimize_ewo)
 
-    is_optimize_ewo_2 = False
+    is_optimize_ewo_2 = True
     buy_ema_low_2 = DecimalParameter(0.96, 0.978, default=0.96 , optimize = is_optimize_ewo_2)
     buy_ema_high_2 = DecimalParameter(1.05, 1.2, default=1.09 , optimize = is_optimize_ewo_2)
 
@@ -172,18 +172,18 @@ class BB_RPB_TSL(IStrategy):
     buy_fastk = IntParameter(20, 30, default=20, optimize = is_optimize_cofi)
     buy_fastd = IntParameter(20, 30, default=20, optimize = is_optimize_cofi)
     buy_adx = IntParameter(20, 30, default=30, optimize = is_optimize_cofi)
-    buy_ewo_high = DecimalParameter(2, 12, default=3.553, optimize = False)
+    buy_ewo_high = DecimalParameter(2, 12, default=3.553, optimize = True)
 
-    is_optimize_btc_safe = False
+    is_optimize_btc_safe = True
     buy_btc_safe = IntParameter(-300, 50, default=-200, optimize = is_optimize_btc_safe)
     buy_btc_safe_1d = DecimalParameter(-0.075, -0.025, default=-0.05, optimize = is_optimize_btc_safe)
     buy_threshold = DecimalParameter(0.003, 0.012, default=0.008, optimize = is_optimize_btc_safe)
 
     ## Sell params
 
-    sell_btc_safe = IntParameter(-400, -300, default=-365, optimize = False)
+    sell_btc_safe = IntParameter(-400, -300, default=-365, optimize = True)
 
-    is_optimize_sell_stoploss = False
+    is_optimize_sell_stoploss = True
     sell_cmf = DecimalParameter(-0.4, 0.0, default=0.0, optimize = is_optimize_sell_stoploss)
     sell_ema_close_delta = DecimalParameter(0.022, 0.027, default= 0.024, optimize = is_optimize_sell_stoploss)
     sell_ema = DecimalParameter(0.97, 0.99, default=0.987 , optimize = is_optimize_sell_stoploss)

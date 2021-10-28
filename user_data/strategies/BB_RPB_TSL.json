@@ -2,60 +2,60 @@
   "strategy_name": "BB_RPB_TSL",
   "params": {
     "buy": {
-      "buy_bb_delta": 0.025,
-      "buy_bb_factor": 0.999,
-      "buy_bb_width": 0.095,
-      "buy_btc_safe": -289,
-      "buy_btc_safe_1d": -0.05,
-      "buy_cci": -116,
-      "buy_cci_length": 25,
-      "buy_closedelta": 12.148,
-      "buy_ema_diff": 0.022,
-      "buy_ema_high": 1.084,
-      "buy_ema_high_2": 1.087,
-      "buy_ema_low": 0.942,
-      "buy_ema_low_2": 0.97,
-      "buy_ewo": -5.585,
-      "buy_ewo_high": 2.055,
-      "buy_rmi": 49,
-      "buy_rmi_length": 17,
-      "buy_rsi": 35,
-      "buy_rsi_fast": 45,
-      "buy_srsi_fk": 32,
-      "buy_threshold": 0.003,
-      "buy_adx": 20,
+      "buy_adx": 24,
+      "buy_bb_delta": 0.029,
+      "buy_bb_factor": 0.998,
+      "buy_bb_width": 0.092,
+      "buy_btc_safe": -300,
+      "buy_btc_safe_1d": -0.07,
+      "buy_cci": -95,
+      "buy_cci_length": 27,
+      "buy_closedelta": 16.865,
       "buy_ema_cofi": 0.979,
-      "buy_fastd": 24,
-      "buy_fastk": 24
+      "buy_ema_diff": 0.024,
+      "buy_ema_high": 1.194,
+      "buy_ema_high_2": 1.156,
+      "buy_ema_low": 0.988,
+      "buy_ema_low_2": 0.966,
+      "buy_ewo": 3.423,
+      "buy_ewo_high": 11.097,
+      "buy_fastd": 22,
+      "buy_fastk": 27,
+      "buy_rmi": 33,
+      "buy_rmi_length": 18,
+      "buy_rsi": 29,
+      "buy_rsi_fast": 47,
+      "buy_srsi_fk": 49,
+      "buy_threshold": 0.003
     },
     "sell": {
-      "sell_btc_safe": -389,
-      "sell_cmf": -0.046,
-      "sell_ema": 0.988,
-      "sell_ema_close_delta": 0.022,
-      "pHSL": -0.157,
+      "pHSL": -0.126,
       "pPF_1": 0.015,
-      "pPF_2": 0.078,
-      "pSL_1": 0.008,
-      "pSL_2": 0.042
+      "pPF_2": 0.1,
+      "pSL_1": 0.02,
+      "pSL_2": 0.057,
+      "sell_btc_safe": -372,
+      "sell_cmf": -0.286,
+      "sell_ema": 0.974,
+      "sell_ema_close_delta": 0.024
     },
     "protection": {},
     "roi": {
-      "0": 0.043,
-      "39": 0.028,
-      "69": 0.012,
-      "177": 0
+      "0": 0.063,
+      "33": 0.046,
+      "77": 0.032,
+      "190": 0
     },
     "stoploss": {
-      "stoploss": -0.226
+      "stoploss": -0.212
     },
     "trailing": {
       "trailing_stop": true,
-      "trailing_stop_positive": 0.296,
-      "trailing_stop_positive_offset": 0.354,
+      "trailing_stop_positive": 0.347,
+      "trailing_stop_positive_offset": 0.39599999999999996,
       "trailing_only_offset_is_reached": true
     }
   },
   "ft_stratparam_v": 1,
-  "export_time": "2021-10-16 10:27:50.354977+00:00"
+  "export_time": "2021-10-19 10:43:40.189899+00:00"
 }
