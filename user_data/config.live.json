@@ -1,5 +1,4 @@
 {
-  "strategy": "NostalgiaForInfinityNext",
   "dry_run": false,
   "timeframe": "5m",
   "max_open_trades": 5,
@@ -13,11 +12,20 @@
     "sell": 30
   },
   "bid_strategy": {
-    "price_side": "bid"
+    "price_side": "ask",
+    "ask_last_balance": 0.0,
+    "use_order_book": false,
+    "order_book_top": 1,
+    "check_depth_of_market": {
+      "enabled": false,
+      "bids_to_ask_delta": 1
+    }
   },
   "ask_strategy": {
-    "price_side": "ask",
-    "use_order_book": false
+    "price_side": "bid",
+    "use_order_book": false,
+    "order_book_min": 1,
+    "order_book_max": 1
   },
   "exchange": {
     "name": "binance",

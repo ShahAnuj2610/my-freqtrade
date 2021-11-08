@@ -24,11 +24,12 @@ sudo netfilter-persistent save
 ## Define your GitHub secrets
 ```bash
 export DOCKER_SSH_HOST=192.168.0.1
-export DOCKER_SSH_USERNAM=ubuntu
-export DOKKER_SSH_PRIVATE_KEY=<>
+export DOCKER_SSH_USERNAME=ubuntu
+export DOCKER_SSH_PRIVATE_KEY=<>
 export DOCKER_HOST=ubuntu@192.168.0.1
 export DOCKER_SSH_PUBLIC_KEY=<>
 export GH_PAT=<>
 ```
 
-
+## Create a swap file
+https://bitlaunch.io/blog/how-to-create-and-adjust-swap-space-in-ubuntu-20-04/

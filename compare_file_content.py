@@ -41,6 +41,7 @@ if __name__ == '__main__':
     while True:
         compare_file_content('user_data/pairlist-volume-binance-usdt.json')
         compare_file_content('user_data/blacklist-binance.json')
+        compare_file_content('user_data/config.live.json')
 
         # sleep for 15 minutes
         import time
