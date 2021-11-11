@@ -11,7 +11,7 @@ load_dotenv()
 log = logging.getLogger(__name__)
 
 
-# credits to https://github.com/thierryjmartin/freqtrade-stuff/blob/main/3commas.py
+# credits to https://github.com/AlexBabescu
 
 
 class ThreeCommasStrategy(IStrategy):
