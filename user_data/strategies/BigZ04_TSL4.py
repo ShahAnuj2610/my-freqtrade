@@ -140,68 +140,68 @@ class BigZ04_TSL4(IStrategy):
 
     # Buy
 
-    buy_condition_0_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=False, load=True)
-    buy_condition_1_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=False, load=True)
-    buy_condition_2_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=False, load=True)
-    buy_condition_3_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=False, load=True)
-    buy_condition_4_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=False, load=True)
-    buy_condition_5_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=False, load=True)
-    buy_condition_6_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=False, load=True)
-    buy_condition_7_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=False, load=True)
-    buy_condition_8_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=False, load=True)
-    buy_condition_9_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=False, load=True)
-    buy_condition_10_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=False, load=True)
-    buy_condition_11_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=False, load=True)
-    buy_condition_12_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=False, load=True)
-    buy_condition_13_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=False, load=True)
+    buy_condition_0_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=True, load=True)
+    buy_condition_1_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=True, load=True)
+    buy_condition_2_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=True, load=True)
+    buy_condition_3_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=True, load=True)
+    buy_condition_4_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=True, load=True)
+    buy_condition_5_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=True, load=True)
+    buy_condition_6_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=True, load=True)
+    buy_condition_7_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=True, load=True)
+    buy_condition_8_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=True, load=True)
+    buy_condition_9_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=True, load=True)
+    buy_condition_10_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=True, load=True)
+    buy_condition_11_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=True, load=True)
+    buy_condition_12_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=True, load=True)
+    buy_condition_13_enable = CategoricalParameter([True, False], default=True, space='buy', optimize=True, load=True)
 
-    buy_bb20_close_bblowerband_safe_1 = DecimalParameter(0.950, 1.050, default=0.989, decimals=3, space='buy', optimize=False, load=True)
-    buy_bb20_close_bblowerband_safe_2 = DecimalParameter(0.700, 1.100, default=0.982, decimals=2, space='buy', optimize=False, load=True)
+    buy_bb20_close_bblowerband_safe_1 = DecimalParameter(0.950, 1.050, default=0.989, decimals=3, space='buy', optimize=True, load=True)
+    buy_bb20_close_bblowerband_safe_2 = DecimalParameter(0.700, 1.100, default=0.982, decimals=2, space='buy', optimize=True, load=True)
 
-    buy_volume_pump_1 = DecimalParameter(0.1, 0.9, default=0.4, space='buy', decimals=1, optimize=False, load=True)
-    buy_volume_drop_1 = DecimalParameter(1, 10, default=3.8, space='buy', decimals=1, optimize=False, load=True)
-    buy_volume_drop_2 = DecimalParameter(1, 10, default=3, space='buy', decimals=1, optimize=False, load=True)
-    buy_volume_drop_3 = DecimalParameter(1, 10, default=2.7, space='buy', decimals=1, optimize=False, load=True)
+    buy_volume_pump_1 = DecimalParameter(0.1, 0.9, default=0.4, space='buy', decimals=1, optimize=True, load=True)
+    buy_volume_drop_1 = DecimalParameter(1, 10, default=3.8, space='buy', decimals=1, optimize=True, load=True)
+    buy_volume_drop_2 = DecimalParameter(1, 10, default=3, space='buy', decimals=1, optimize=True, load=True)
+    buy_volume_drop_3 = DecimalParameter(1, 10, default=2.7, space='buy', decimals=1, optimize=True, load=True)
 
-    buy_rsi_1h_0 = DecimalParameter(55.0, 85.0, default=71.0, space='buy', decimals=1, optimize=False, load=True)    
-    buy_rsi_1h_1a = DecimalParameter(65.0, 78.0, default=69.0, space='buy', decimals=1, optimize=False, load=True)
-    buy_rsi_1h_1 = DecimalParameter(10.0, 40.0, default=16.5, space='buy', decimals=1, optimize=False, load=True)
-    buy_rsi_1h_2 = DecimalParameter(10.0, 40.0, default=15.0, space='buy', decimals=1, optimize=False, load=True)
+    buy_rsi_1h_0 = DecimalParameter(55.0, 85.0, default=71.0, space='buy', decimals=1, optimize=True, load=True)    
+    buy_rsi_1h_1a = DecimalParameter(65.0, 78.0, default=69.0, space='buy', decimals=1, optimize=True, load=True)
+    buy_rsi_1h_1 = DecimalParameter(10.0, 40.0, default=16.5, space='buy', decimals=1, optimize=True, load=True)
+    buy_rsi_1h_2 = DecimalParameter(10.0, 40.0, default=15.0, space='buy', decimals=1, optimize=True, load=True)
     buy_rsi_1h_3 = DecimalParameter(10.0, 40.0, default=20.0, space='buy', decimals=1, optimize=True, load=True)
-    buy_rsi_1h_4 = DecimalParameter(10.0, 40.0, default=35.0, space='buy', decimals=1, optimize=False, load=True)
-    buy_rsi_1h_5 = DecimalParameter(10.0, 60.0, default=39.0, space='buy', decimals=1, optimize=False, load=True)
+    buy_rsi_1h_4 = DecimalParameter(10.0, 40.0, default=35.0, space='buy', decimals=1, optimize=True, load=True)
+    buy_rsi_1h_5 = DecimalParameter(10.0, 60.0, default=39.0, space='buy', decimals=1, optimize=True, load=True)
 
-    buy_rsi_0 = DecimalParameter(10.0, 40.0, default=30.0, space='buy', decimals=1, optimize=False, load=True)
+    buy_rsi_0 = DecimalParameter(10.0, 40.0, default=30.0, space='buy', decimals=1, optimize=True, load=True)
     buy_rsi_1 = DecimalParameter(10.0, 40.0, default=28.0, space='buy', decimals=1, optimize=True, load=True)
-    buy_rsi_2 = DecimalParameter(7.0, 40.0, default=10.0, space='buy', decimals=1, optimize=False, load=True)
-    buy_rsi_3 = DecimalParameter(7.0, 40.0, default=14.2, space='buy', decimals=1, optimize=False, load=True)
+    buy_rsi_2 = DecimalParameter(7.0, 40.0, default=10.0, space='buy', decimals=1, optimize=True, load=True)
+    buy_rsi_3 = DecimalParameter(7.0, 40.0, default=14.2, space='buy', decimals=1, optimize=True, load=True)
 
-    buy_macd_1 = DecimalParameter(0.01, 0.09, default=0.02, space='buy', decimals=2, optimize=False, load=True)
-    buy_macd_2 = DecimalParameter(0.01, 0.09, default=0.03, space='buy', decimals=2, optimize=False, load=True)
+    buy_macd_1 = DecimalParameter(0.01, 0.09, default=0.02, space='buy', decimals=2, optimize=True, load=True)
+    buy_macd_2 = DecimalParameter(0.01, 0.09, default=0.03, space='buy', decimals=2, optimize=True, load=True)
 
-    buy_dip_0 = DecimalParameter(1.015, 1.040, default=1.024, space='buy', decimals=3, optimize=False, load=True)
+    buy_dip_0 = DecimalParameter(1.015, 1.040, default=1.024, space='buy', decimals=3, optimize=True, load=True)
 
 
     # hyperopt parameters for custom_stoploss()
-    trade_time = IntParameter(25, 65, default=35, space='sell', optimize=False, load=True)
-    rsi_1h_val = IntParameter(25, 45, default=32, space='sell', optimize=False, load=True)
-    narrow_stop = DecimalParameter(1.005, 1.030, default=1.020, space='sell', decimals=3, optimize=False, load=True)
-    wide_stop = DecimalParameter(1.010, 1.045, default=1.035, space='sell', decimals=3, optimize=False, load=True)
+    trade_time = IntParameter(25, 65, default=35, space='sell', optimize=True, load=True)
+    rsi_1h_val = IntParameter(25, 45, default=32, space='sell', optimize=True, load=True)
+    narrow_stop = DecimalParameter(1.005, 1.030, default=1.020, space='sell', decimals=3, optimize=True, load=True)
+    wide_stop = DecimalParameter(1.010, 1.045, default=1.035, space='sell', decimals=3, optimize=True, load=True)
 
     # hyperopt parameters for SMAOffsetProtectOptV1 sell signal
-    base_nb_candles_sell = IntParameter(5, 80, default=49, space='sell', optimize=False, load=True)
-    high_offset = DecimalParameter(0.99, 1.1, default=1.006, space='sell', optimize=False, load=True)
+    base_nb_candles_sell = IntParameter(5, 80, default=49, space='sell', optimize=True, load=True)
+    high_offset = DecimalParameter(0.99, 1.1, default=1.006, space='sell', optimize=True, load=True)
 
     # trailing stoploss hyperopt parameters
     # hard stoploss profit
-    pHSL = DecimalParameter(-0.200, -0.040, default=-0.08, decimals=3, space='sell', optimize=False, load=True)
+    pHSL = DecimalParameter(-0.200, -0.040, default=-0.08, decimals=3, space='sell', optimize=True, load=True)
     # profit threshold 1, trigger point, SL_1 is used
-    pPF_1 = DecimalParameter(0.008, 0.020, default=0.016, decimals=3, space='sell', optimize=False, load=True)
-    pSL_1 = DecimalParameter(0.008, 0.020, default=0.011, decimals=3, space='sell', optimize=False, load=True)
+    pPF_1 = DecimalParameter(0.008, 0.020, default=0.016, decimals=3, space='sell', optimize=True, load=True)
+    pSL_1 = DecimalParameter(0.008, 0.020, default=0.011, decimals=3, space='sell', optimize=True, load=True)
 
     # profit threshold 2, SL_2 is used
-    pPF_2 = DecimalParameter(0.040, 0.100, default=0.080, decimals=3, space='sell', optimize=False, load=True)
-    pSL_2 = DecimalParameter(0.020, 0.070, default=0.040, decimals=3, space='sell', optimize=False, load=True)
+    pPF_2 = DecimalParameter(0.040, 0.100, default=0.080, decimals=3, space='sell', optimize=True, load=True)
+    pSL_2 = DecimalParameter(0.020, 0.070, default=0.040, decimals=3, space='sell', optimize=True, load=True)
 
 
     def confirm_trade_exit(self, pair: str, trade: Trade, order_type: str, amount: float,
