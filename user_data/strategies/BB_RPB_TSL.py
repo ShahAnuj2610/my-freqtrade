@@ -222,7 +222,7 @@ class BB_RPB_TSL(IStrategy):
 
     is_optimize_local_uptrend = True
     buy_ema_diff = DecimalParameter(0.022, 0.027, default=0.025, optimize = is_optimize_local_uptrend)
-    buy_bb_factor = DecimalParameter(0.990, 0.999, default=0.995, optimize = False)
+    buy_bb_factor = DecimalParameter(0.990, 0.999, default=0.995, optimize = True)
     buy_closedelta = DecimalParameter(12.0, 18.0, default=15.0, optimize = is_optimize_local_uptrend)
 
     is_optimize_local_dip = True
