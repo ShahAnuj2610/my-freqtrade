@@ -381,6 +381,6 @@ class RSIDivTirail(IStrategy):
                 'sell'
             ] = 1
 
-        dataframe.to_csv('user_data/csvs/%s_%s.csv' % (self.__class__.__name__, metadata["pair"].replace("/", "_")))
+        # dataframe.to_csv('user_data/csvs/%s_%s.csv' % (self.__class__.__name__, metadata["pair"].replace("/", "_")))
 
         return dataframe
