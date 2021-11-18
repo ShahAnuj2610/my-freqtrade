@@ -1,16 +1,16 @@
-import logging
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from functools import reduce
 from typing import List
 
 import freqtrade.vendor.qtpylib.indicators as qtpylib
 import numpy as np
+import pandas as pd
 import pandas_ta as pta
 import talib.abstract as ta
 import technical.indicators as ftt
-from freqtrade.persistence import Trade
+from freqtrade.persistence import Trade, PairLocks
 from freqtrade.strategy import (BooleanParameter, DecimalParameter,
-                                IntParameter, merge_informative_pair)
+                                IntParameter, stoploss_from_open, merge_informative_pair)
 from freqtrade.strategy.interface import IStrategy
 from pandas import DataFrame, Series
 from skopt.space import Dimension, Integer
@@ -28,102 +28,69 @@ def ha_typical_price(bars):
     return Series(index=bars.index, data=res)
 
 
-class ClucHAnix_BB_RPB(IStrategy):
-    class HyperOpt:
-        @staticmethod
-        def generate_roi_table(params: dict):
-            """
-            Generate the ROI table that will be used by Hyperopt
-            This implementation generates the default legacy Freqtrade ROI tables.
-            Change it if you need different number of steps in the generated
-            ROI tables or other structure of the ROI tables.
-            Please keep it aligned with parameters in the 'roi' optimization
-            hyperspace defined by the roi_space method.
-            """
-            roi_table = {}
-            roi_table[0] = 0.05
-            roi_table[params['roi_t6']] = 0.04
-            roi_table[params['roi_t5']] = 0.03
-            roi_table[params['roi_t4']] = 0.02
-            roi_table[params['roi_t3']] = 0.01
-            roi_table[params['roi_t2']] = 0.0001
-            roi_table[params['roi_t1']] = -10
-
-            return roi_table
-
-        @staticmethod
-        def roi_space() -> List[Dimension]:
-            """
-            Values to search for each ROI steps
-            Override it if you need some different ranges for the parameters in the
-            'roi' optimization hyperspace.
-            Please keep it aligned with the implementation of the
-            generate_roi_table method.
-            """
-            return [
-                Integer(240, 720, name='roi_t1'),
-                Integer(120, 240, name='roi_t2'),
-                Integer(90, 120, name='roi_t3'),
-                Integer(60, 90, name='roi_t4'),
-                Integer(30, 60, name='roi_t5'),
-                Integer(1, 30, name='roi_t6'),
-            ]
-
+class ClucHAnix_BB_RPB_MOD(IStrategy):
     # Buy hyperspace params:
     buy_params = {
-        "buy_btc_safe_1d": -0.05,
-        "antipump_threshold": 0.25,
-        "clucha_bbdelta_close": 0.02206,
-        "clucha_bbdelta_tail": 1.02515,
-        "clucha_close_bblower": 0.03669,
-        "clucha_closedelta_close": 0.04401,
-        "clucha_enabled": True,
-        "clucha_rocr_1h": 0.47782,
-        "cofi_adx": 45,
-        "cofi_ema": 1.329,
-        "cofi_enabled": True,
-        "cofi_ewo_high": 1.768,
-        "cofi_fastd": 18,
-        "cofi_fastk": 25,
+        "antipump_threshold": 0.133,
+        "buy_btc_safe_1d": -0.311,
+        "clucha_bbdelta_close": 0.04796,
+        "clucha_bbdelta_tail": 0.93112,
+        "clucha_close_bblower": 0.01645,
+        "clucha_closedelta_close": 0.00931,
+        "clucha_enabled": False,
+        "clucha_rocr_1h": 0.41663,
+        "cofi_adx": 8,
+        "cofi_ema": 0.639,
+        "cofi_enabled": False,
+        "cofi_ewo_high": 5.6,
+        "cofi_fastd": 40,
+        "cofi_fastk": 13,
         "ewo_1_enabled": False,
-        "ewo_1_rsi_14": 55,
-        "ewo_1_rsi_4": 12,
-        "ewo_candles_buy": 29,
-        "ewo_candles_sell": 15,
-        "ewo_high": 2.119,
-        "ewo_high_offset": 1.26902,
-        "ewo_low": -16.218,
-        "ewo_low_enabled": False,
-        "ewo_low_offset": 0.99959,
-        "ewo_low_rsi_4": 15,
-        "lambo1_ema_14_factor": 0.981,
-        "lambo1_enabled": True,
-        "lambo1_rsi_14_limit": 52,
-        "lambo1_rsi_4_limit": 37,
-        "lambo2_ema_14_factor": 0.844,
-        "lambo2_enabled": False,
-        "lambo2_rsi_14_limit": 37,
-        "lambo2_rsi_4_limit": 60,
-        "local_trend_bb_factor": 1.03,
-        "local_trend_closedelta": 25.831,
-        "local_trend_ema_diff": 0.047,
-        "local_trend_enabled": False,
-        "nfi32_cti_limit": -0.27048,
+        "ewo_1_rsi_14": 45,
+        "ewo_1_rsi_4": 7,
+        "ewo_candles_buy": 13,
+        "ewo_candles_sell": 19,
+        "ewo_high": 5.249,
+        "ewo_high_offset": 1.04116,
+        "ewo_low": -11.424,
+        "ewo_low_enabled": True,
+        "ewo_low_offset": 0.97463,
+        "ewo_low_rsi_4": 35,
+        "lambo1_ema_14_factor": 1.054,
+        "lambo1_enabled": False,
+        "lambo1_rsi_14_limit": 26,
+        "lambo1_rsi_4_limit": 18,
+        "lambo2_ema_14_factor": 0.981,
+        "lambo2_enabled": True,
+        "lambo2_rsi_14_limit": 39,
+        "lambo2_rsi_4_limit": 44,
+        "local_trend_bb_factor": 0.823,
+        "local_trend_closedelta": 19.253,
+        "local_trend_ema_diff": 0.125,
+        "local_trend_enabled": True,
+        "nfi32_cti_limit": -1.09639,
         "nfi32_enabled": True,
-        "nfi32_rsi_14": 75,
-        "nfi32_rsi_4": 84,
-        "nfi32_sma_factor": 0.7871,
+        "nfi32_rsi_14": 15,
+        "nfi32_rsi_4": 49,
+        "nfi32_sma_factor": 0.93391,
+    }
+
+    # Sell hyperspace params:
+    sell_params = {
+        # custom stoploss params, come from BB_RPB_TSL
+        "pHSL": -0.32,
+        "pPF_1": 0.02,
+        "pPF_2": 0.047,
+        "pSL_1": 0.02,
+        "pSL_2": 0.046,
+
+        'sell-fisher': 0.38414,
+        'sell-bbmiddle-close': 1.07634
     }
 
     # ROI table:
     minimal_roi = {
-        "0": 0.05,
-        "15": 0.04,
-        "51": 0.03,
-        "81": 0.02,
-        "112": 0.01,
-        "154": 0.0001,
-        "200": -10
+        "70": 0
     }
 
     # Stoploss:
@@ -131,8 +98,8 @@ class ClucHAnix_BB_RPB(IStrategy):
 
     # Trailing stop:
     trailing_stop = False
-    trailing_stop_positive = 0.3207
-    trailing_stop_positive_offset = 0.3849
+    trailing_stop_positive = 0.001
+    trailing_stop_positive_offset = 0.012
     trailing_only_offset_is_reached = False
 
     """
@@ -142,7 +109,7 @@ class ClucHAnix_BB_RPB(IStrategy):
     timeframe = '1m'
 
     # Make sure these match or are not overridden in config
-    use_sell_signal = False
+    use_sell_signal = True
     sell_profit_only = False
     ignore_roi_if_buy_signal = False
 
@@ -165,6 +132,17 @@ class ClucHAnix_BB_RPB(IStrategy):
         'stoploss_on_exchange_limit_ratio': 0.99
     }
 
+    # hard stoploss profit
+    pHSL = DecimalParameter(-0.500, -0.040, default=-0.08, decimals=3, space='sell', load=True)
+    # profit threshold 1, trigger point, SL_1 is used
+    pPF_1 = DecimalParameter(0.008, 0.020, default=0.016, decimals=3, space='sell', load=True)
+    pSL_1 = DecimalParameter(0.008, 0.020, default=0.011, decimals=3, space='sell', load=True)
+
+    # profit threshold 2, SL_2 is used
+    pPF_2 = DecimalParameter(0.040, 0.100, default=0.080, decimals=3, space='sell', load=True)
+    pSL_2 = DecimalParameter(0.020, 0.070, default=0.040, decimals=3, space='sell', load=True)
+
+    # buy param
     # ClucHA
     clucha_bbdelta_close = DecimalParameter(0.01, 0.05, default=buy_params['clucha_bbdelta_close'], decimals=5,
                                             space='buy', optimize=True)
@@ -249,20 +227,30 @@ class ClucHAnix_BB_RPB(IStrategy):
 
     def custom_stoploss(self, pair: str, trade: 'Trade', current_time: datetime,
                         current_rate: float, current_profit: float, **kwargs) -> float:
-        sl_new = 1
 
-        if (current_profit > 0.2):
-            sl_new = 0.05
-        elif (current_profit > 0.1):
-            sl_new = 0.03
-        elif (current_profit > 0.06):
-            sl_new = 0.02
-        elif (current_profit > 0.03):
-            sl_new = 0.015
-        elif (current_profit > 0.015):
-            sl_new = 0.0075
+        # hard stoploss profit
+        HSL = self.pHSL.value
+        PF_1 = self.pPF_1.value
+        SL_1 = self.pSL_1.value
+        PF_2 = self.pPF_2.value
+        SL_2 = self.pSL_2.value
 
-        return sl_new
+        # For profits between PF_1 and PF_2 the stoploss (sl_profit) used is linearly interpolated
+        # between the values of SL_1 and SL_2. For all profits above PL_2 the sl_profit value
+        # rises linearly with current profit, for profits below PF_1 the hard stoploss profit is used.
+
+        if (current_profit > PF_2):
+            sl_profit = SL_2 + (current_profit - PF_2)
+        elif (current_profit > PF_1):
+            sl_profit = SL_1 + ((current_profit - PF_1) * (SL_2 - SL_1) / (PF_2 - PF_1))
+        else:
+            sl_profit = HSL
+
+        # Only for hyperopt invalid return
+        if (sl_profit >= current_profit):
+            return -0.99
+
+        return stoploss_from_open(sl_profit, current_profit)
 
     ############################################################################
 
@@ -308,12 +296,19 @@ class ClucHAnix_BB_RPB(IStrategy):
         dataframe['ha_closedelta'] = (dataframe['ha_close'] - dataframe['ha_close'].shift()).abs()
         dataframe['tail'] = (dataframe['ha_close'] - dataframe['ha_low']).abs()
         dataframe['bb_lowerband'] = dataframe['lower']
+        dataframe['bb_middleband'] = dataframe['mid']
 
+        dataframe['ema_fast'] = ta.EMA(dataframe['ha_close'], timeperiod=3)
         dataframe['ema_slow'] = ta.EMA(dataframe['ha_close'], timeperiod=50)
         dataframe['rocr'] = ta.ROCR(dataframe['ha_close'], timeperiod=28)
 
         # Elliot
         dataframe['EWO'] = EWO(dataframe, 50, 200)
+
+        rsi = ta.RSI(dataframe)
+        dataframe["rsi"] = rsi
+        rsi = 0.1 * (rsi - 50)
+        dataframe["fisher"] = (np.exp(2 * rsi) - 1) / (np.exp(2 * rsi) + 1)
 
         inf_tf = '1h'
 
@@ -404,7 +399,7 @@ class ClucHAnix_BB_RPB(IStrategy):
                 (dataframe['EWO'] > self.ewo_high.value) &
                 (dataframe['rsi_14'] < self.ewo_1_rsi_14.value) &
                 (dataframe['close'] < (
-                        dataframe[f'ma_sell_{self.ewo_candles_sell.value}'] * self.ewo_high_offset.value))
+                            dataframe[f'ma_sell_{self.ewo_candles_sell.value}'] * self.ewo_high_offset.value))
         )
         dataframe.loc[ewo_1, 'buy_tag'] += 'ewo1_'
         conditions.append(ewo_1)
@@ -415,7 +410,7 @@ class ClucHAnix_BB_RPB(IStrategy):
                 (dataframe['close'] < (dataframe[f'ma_buy_{self.ewo_candles_buy.value}'] * self.ewo_low_offset.value)) &
                 (dataframe['EWO'] < self.ewo_low.value) &
                 (dataframe['close'] < (
-                        dataframe[f'ma_sell_{self.ewo_candles_sell.value}'] * self.ewo_high_offset.value))
+                            dataframe[f'ma_sell_{self.ewo_candles_sell.value}'] * self.ewo_high_offset.value))
         )
         dataframe.loc[ewo_low, 'buy_tag'] += 'ewo_low_'
         conditions.append(ewo_low)
@@ -461,18 +456,19 @@ class ClucHAnix_BB_RPB(IStrategy):
         return dataframe
 
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        params = self.sell_params
 
-        # dataframe.loc[
-        #     (dataframe['fisher'] > self.sell_fisher.value) &
-        #     (dataframe['ha_high'].le(dataframe['ha_high'].shift(1))) &
-        #     (dataframe['ha_high'].shift(1).le(dataframe['ha_high'].shift(2))) &
-        #     (dataframe['ha_close'].le(dataframe['ha_close'].shift(1))) &
-        #     (dataframe['ema_fast'] > dataframe['ha_close']) &
-        #     ((dataframe['ha_close'] * self.sell_bbmiddle_close.value) > dataframe['bb_middleband']) &
-        #     (dataframe['volume'] > 0)
-        #     ,
-        #     'sell'
-        # ] = 1
+        dataframe.loc[
+            (dataframe['fisher'] > params['sell-fisher']) &
+            (dataframe['ha_high'].le(dataframe['ha_high'].shift(1))) &
+            (dataframe['ha_high'].shift(1).le(dataframe['ha_high'].shift(2))) &
+            (dataframe['ha_close'].le(dataframe['ha_close'].shift(1))) &
+            (dataframe['ema_fast'] > dataframe['ha_close']) &
+            ((dataframe['ha_close'] * params['sell-bbmiddle-close']) > dataframe['bb_middleband']) &
+            (dataframe['volume'] > 0)
+            ,
+            'sell'
+        ] = 1
 
         return dataframe
 
