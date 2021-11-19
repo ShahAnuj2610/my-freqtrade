@@ -12,10 +12,12 @@ from datetime import datetime, timedelta, timezone
 from freqtrade.persistence import Trade
 import time
 
+from user_data.strategies.NostalgiaForInfinityNext import NostalgiaForInfinityNext
+
 logger = logging.getLogger(__name__)
 
 
-class TrailingBuyStrat2(YourStrat):
+class TrailingBuyStrat2(NostalgiaForInfinityNext):
     # Original idea by @MukavaValkku, code by @tirail and @stash86
     #
     # This class is designed to inherit from yours and starts trailing buy with your buy signals
