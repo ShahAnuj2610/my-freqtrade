@@ -1,0 +1,60 @@
+{
+  "strategy_name": "MultiMA_TSL3a",
+  "params": {
+    "roi": {
+      "0": 100
+    },
+    "trailing": {
+      "trailing_stop": false,
+      "trailing_stop_positive": 0.01,
+      "trailing_stop_positive_offset": 0.018,
+      "trailing_only_offset_is_reached": true
+    },
+    "buy": {
+      "base_nb_candles_buy_ema": 64,
+      "base_nb_candles_buy_ema2": 30,
+      "base_nb_candles_buy_hma": 52,
+      "base_nb_candles_buy_hma2": 66,
+      "base_nb_candles_buy_trima": 19,
+      "base_nb_candles_buy_trima2": 5,
+      "base_nb_candles_buy_zema": 53,
+      "base_nb_candles_buy_zema2": 35,
+      "buy_condition_hma_enable": false,
+      "buy_condition_trima_enable": true,
+      "buy_condition_zema_enable": true,
+      "buy_rsi_fast": 43,
+      "ewo_high": 3.334,
+      "ewo_high2": 3.545,
+      "ewo_low": -10.559,
+      "ewo_low2": -16.165,
+      "fast_ewo": 35,
+      "low_offset_ema": 1.046,
+      "low_offset_ema2": 1.066,
+      "low_offset_hma": 0.952,
+      "low_offset_hma2": 0.902,
+      "low_offset_trima": 0.979,
+      "low_offset_trima2": 0.921,
+      "low_offset_zema": 0.977,
+      "low_offset_zema2": 0.946,
+      "rsi_buy": 59,
+      "rsi_buy2": 45,
+      "slow_ewo": 121
+    },
+    "sell": {
+      "base_nb_candles_ema_sell": 27,
+      "base_nb_candles_ema_sell2": 53,
+      "high_offset_sell_ema": 0.991
+    },
+    "protection": {
+      "cooldown_lookback": 3,
+      "low_profit_lookback": 3,
+      "low_profit_min_req": 0.0,
+      "low_profit_stop_duration": 62
+    },
+    "stoploss": {
+      "stoploss": -0.217
+    }
+  },
+  "ft_stratparam_v": 1,
+  "export_time": "2021-11-24 06:34:50.290842+00:00"
+}
