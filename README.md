@@ -32,4 +32,11 @@ export GH_PAT=<>
 ```
 
 ## Create a swap file
-https://bitlaunch.io/blog/how-to-create-and-adjust-swap-space-in-ubuntu-20-04/
+```bash
+sudo fallocate -l 100G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+sudo cp /etc/fstab /etc/fstab.bak
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
