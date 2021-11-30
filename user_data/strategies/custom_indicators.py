@@ -206,3 +206,22 @@ def SROC(dataframe, roclen=21, emalen=13, smooth=21):
     sroc = ta.ROC(ema, timeperiod=smooth)
 
     return sroc
+
+# tom de mark indicator
+def TomDeMark(dataframe, period=14):
+    """
+    Tom de Mark Indicator
+    https://www.tradingview.com/script/xzIoaIJC-Tom-de-Mark-Indicator/
+    """
+    df = dataframe.copy()
+
+    df['d'] = (df['high'] + df['low'] + df['close']) / 3
+    df['d_change'] = (df['d'] - df['d'].shift(1)) / df['d'].shift(1) * 100
+    df['d_change'] = df['d_change'].fillna(0)
+
+    df['d_ema'] = ta.EMA(df['d_change'], timeperiod=period)
+    df['d_ema_ema'] = ta.EMA(df['d_ema'], timeperiod=period)
+
+    df['tomde'] = (df['d_ema'] - df['d_ema_ema']) / df['d_ema_ema'] * 100
+
+    return df['tomde']
