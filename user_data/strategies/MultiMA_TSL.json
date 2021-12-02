@@ -11,50 +11,55 @@
       "trailing_only_offset_is_reached": true
     },
     "buy": {
-      "base_nb_candles_buy_ema": 64,
-      "base_nb_candles_buy_ema2": 6,
-      "base_nb_candles_buy_hma": 41,
-      "base_nb_candles_buy_hma2": 36,
-      "base_nb_candles_buy_trima": 80,
-      "base_nb_candles_buy_trima2": 50,
-      "base_nb_candles_buy_zema": 36,
-      "base_nb_candles_buy_zema2": 71,
+      "base_nb_candles_buy_ema": 57,
+      "base_nb_candles_buy_ema2": 62,
+      "base_nb_candles_buy_hma": 16,
+      "base_nb_candles_buy_hma2": 74,
+      "base_nb_candles_buy_trima": 25,
+      "base_nb_candles_buy_trima2": 72,
+      "base_nb_candles_buy_zema": 37,
+      "base_nb_candles_buy_zema2": 79,
       "buy_condition_hma_enable": false,
       "buy_condition_trima_enable": true,
       "buy_condition_zema_enable": true,
-      "buy_rsi_fast": 48,
-      "ewo_high": 4.061,
-      "ewo_high2": 3.074,
-      "ewo_low": -19.024,
-      "ewo_low2": -16.779,
-      "fast_ewo": 41,
-      "low_offset_ema": 1.081,
-      "low_offset_ema2": 0.99,
-      "low_offset_hma": 0.906,
-      "low_offset_hma2": 0.936,
-      "low_offset_trima": 0.915,
-      "low_offset_trima2": 0.949,
-      "low_offset_zema": 0.977,
-      "low_offset_zema2": 0.938,
-      "rsi_buy": 55,
-      "rsi_buy2": 70,
-      "slow_ewo": 124
+      "buy_rsi_fast": 28,
+      "ewo_high": 2.475,
+      "ewo_high2": 2.732,
+      "ewo_low": -12.574,
+      "ewo_low2": -10.823,
+      "fast_ewo": 16,
+      "low_offset_ema": 1.082,
+      "low_offset_ema2": 1.074,
+      "low_offset_hma": 0.912,
+      "low_offset_hma2": 0.966,
+      "low_offset_trima": 0.973,
+      "low_offset_trima2": 0.981,
+      "low_offset_zema": 0.971,
+      "low_offset_zema2": 0.975,
+      "rsi_buy": 57,
+      "rsi_buy2": 41,
+      "slow_ewo": 184
     },
     "sell": {
-      "base_nb_candles_ema_sell": 12,
-      "base_nb_candles_ema_sell2": 76,
-      "high_offset_sell_ema": 0.99
+      "base_nb_candles_ema_sell": 58,
+      "base_nb_candles_ema_sell2": 32,
+      "high_offset_sell_ema": 1.02,
+      "pHSL": -0.45,
+      "pPF_1": 0.011,
+      "pPF_2": 0.074,
+      "pSL_1": 0.011,
+      "pSL_2": 0.051
     },
     "protection": {
-      "cooldown_lookback": 9,
-      "low_profit_lookback": 33,
-      "low_profit_min_req": 0.02,
-      "low_profit_stop_duration": 16
+      "cooldown_lookback": 5,
+      "low_profit_lookback": 53,
+      "low_profit_min_req": -0.02,
+      "low_profit_stop_duration": 121
     },
     "stoploss": {
-      "stoploss": -0.313
+      "stoploss": -0.306
     }
   },
   "ft_stratparam_v": 1,
-  "export_time": "2021-11-17 20:30:42.288335+00:00"
+  "export_time": "2021-12-02 08:58:56.454867+00:00"
 }

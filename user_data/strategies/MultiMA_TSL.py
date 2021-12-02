@@ -4,7 +4,7 @@ import numpy as np
 import talib.abstract as ta
 from freqtrade.strategy.interface import IStrategy
 from freqtrade.strategy import (merge_informative_pair,
-                                DecimalParameter, IntParameter, BooleanParameter, timeframe_to_minutes)
+                                DecimalParameter, IntParameter, BooleanParameter, timeframe_to_minutes, stoploss_from_open)
 from pandas import DataFrame, Series
 from functools import reduce
 from freqtrade.persistence import Trade
@@ -72,6 +72,12 @@ class MultiMA_TSL3(IStrategy):
     sell_params = {
         "base_nb_candles_ema_sell": 5,
         "high_offset_sell_ema": 0.994,
+        # custom stoploss params, come from BB_RPB_TSL
+        "pHSL": -0.32,
+        "pPF_1": 0.02,
+        "pPF_2": 0.047,
+        "pSL_1": 0.02,
+        "pSL_2": 0.046,
     }
 
     # ROI table:
@@ -80,6 +86,16 @@ class MultiMA_TSL3(IStrategy):
     }
 
     stoploss = -0.15
+
+    # hard stoploss profit
+    pHSL = DecimalParameter(-0.500, -0.040, default=-0.08, decimals=3, space='sell', load=True)
+    # profit threshold 1, trigger point, SL_1 is used
+    pPF_1 = DecimalParameter(0.008, 0.020, default=0.016, decimals=3, space='sell', load=True)
+    pSL_1 = DecimalParameter(0.008, 0.020, default=0.011, decimals=3, space='sell', load=True)
+
+    # profit threshold 2, SL_2 is used
+    pPF_2 = DecimalParameter(0.040, 0.100, default=0.080, decimals=3, space='sell', load=True)
+    pSL_2 = DecimalParameter(0.020, 0.070, default=0.040, decimals=3, space='sell', load=True)
 
     optimize_sell_ema = True
     base_nb_candles_ema_sell = IntParameter(5, 80, default=20, space='sell', optimize=True)
@@ -239,22 +255,30 @@ class MultiMA_TSL3(IStrategy):
     # credit to Perkmeister for this custom stoploss to help the strategy ride a green candle when the sell signal triggered
     def custom_stoploss(self, pair: str, trade: 'Trade', current_time: datetime,
                         current_rate: float, current_profit: float, **kwargs) -> float:
-        sl_new = 1
 
-        if (self.custom_info[pair][self.SELL_TRIGGER] == 1):
-            if not self.config['runmode'].value in ('backtest', 'hyperopt'):
-                sl_new = 0.001
+        # hard stoploss profit
+        HSL = self.pHSL.value
+        PF_1 = self.pPF_1.value
+        SL_1 = self.pSL_1.value
+        PF_2 = self.pPF_2.value
+        SL_2 = self.pSL_2.value
 
-        if (current_profit > 0.2):
-            sl_new = 0.05
-        elif (current_profit > 0.1):
-            sl_new = 0.03
-        elif (current_profit > 0.06):
-            sl_new = 0.02
-        elif (current_profit > 0.03):
-            sl_new = 0.01
+        # For profits between PF_1 and PF_2 the stoploss (sl_profit) used is linearly interpolated
+        # between the values of SL_1 and SL_2. For all profits above PL_2 the sl_profit value
+        # rises linearly with current profit, for profits below PF_1 the hard stoploss profit is used.
 
-        return sl_new
+        if (current_profit > PF_2):
+            sl_profit = SL_2 + (current_profit - PF_2)
+        elif (current_profit > PF_1):
+            sl_profit = SL_1 + ((current_profit - PF_1) * (SL_2 - SL_1) / (PF_2 - PF_1))
+        else:
+            sl_profit = HSL
+
+        # Only for hyperopt invalid return
+        if (sl_profit >= current_profit):
+            return -0.99
+
+        return stoploss_from_open(sl_profit, current_profit)
 
     def confirm_trade_entry(self, pair: str, order_type: str, amount: float, rate: float, time_in_force: str,
                             **kwargs) -> bool:
