@@ -1,1 +1,3 @@
 pandas-ta
+py3cw
+python-dotenv
