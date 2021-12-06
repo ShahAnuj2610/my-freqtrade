@@ -40,3 +40,10 @@ sudo swapon /swapfile
 sudo cp /etc/fstab /etc/fstab.bak
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 ```
+
+## Delete swap file
+```bash
+sudo swapoff /swapfile
+sudo rm /swapfile
+sudo cp /etc/fstab.bak /etc/fstab
+```
