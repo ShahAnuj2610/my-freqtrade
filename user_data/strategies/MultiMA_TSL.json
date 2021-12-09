@@ -1,9 +1,6 @@
 {
   "strategy_name": "MultiMA_TSL3a",
   "params": {
-    "roi": {
-      "0": 100
-    },
     "trailing": {
       "trailing_stop": false,
       "trailing_stop_positive": 0.01,
@@ -11,55 +8,61 @@
       "trailing_only_offset_is_reached": true
     },
     "buy": {
-      "base_nb_candles_buy_ema": 57,
-      "base_nb_candles_buy_ema2": 62,
-      "base_nb_candles_buy_hma": 16,
-      "base_nb_candles_buy_hma2": 74,
-      "base_nb_candles_buy_trima": 25,
-      "base_nb_candles_buy_trima2": 72,
-      "base_nb_candles_buy_zema": 37,
-      "base_nb_candles_buy_zema2": 79,
+      "base_nb_candles_buy_ema": 7,
+      "base_nb_candles_buy_ema2": 60,
+      "base_nb_candles_buy_hma": 22,
+      "base_nb_candles_buy_hma2": 19,
+      "base_nb_candles_buy_trima": 40,
+      "base_nb_candles_buy_trima2": 66,
+      "base_nb_candles_buy_zema": 49,
+      "base_nb_candles_buy_zema2": 64,
       "buy_condition_hma_enable": false,
-      "buy_condition_trima_enable": true,
+      "buy_condition_trima_enable": false,
       "buy_condition_zema_enable": true,
-      "buy_rsi_fast": 28,
-      "ewo_high": 2.475,
-      "ewo_high2": 2.732,
-      "ewo_low": -12.574,
-      "ewo_low2": -10.823,
-      "fast_ewo": 16,
-      "low_offset_ema": 1.082,
-      "low_offset_ema2": 1.074,
-      "low_offset_hma": 0.912,
-      "low_offset_hma2": 0.966,
-      "low_offset_trima": 0.973,
-      "low_offset_trima2": 0.981,
-      "low_offset_zema": 0.971,
-      "low_offset_zema2": 0.975,
-      "rsi_buy": 57,
-      "rsi_buy2": 41,
-      "slow_ewo": 184
+      "buy_rsi_fast": 40,
+      "ewo_high": 4.164,
+      "ewo_high2": 7.138,
+      "ewo_low": -14.268,
+      "ewo_low2": -8.833,
+      "fast_ewo": 49,
+      "low_offset_ema": 1.074,
+      "low_offset_ema2": 0.907,
+      "low_offset_hma": 0.901,
+      "low_offset_hma2": 0.947,
+      "low_offset_trima": 0.974,
+      "low_offset_trima2": 0.941,
+      "low_offset_zema": 0.973,
+      "low_offset_zema2": 0.951,
+      "rsi_buy": 51,
+      "rsi_buy2": 42,
+      "slow_ewo": 154
     },
     "sell": {
-      "base_nb_candles_ema_sell": 58,
-      "base_nb_candles_ema_sell2": 32,
-      "high_offset_sell_ema": 1.02,
-      "pHSL": -0.45,
-      "pPF_1": 0.011,
-      "pPF_2": 0.074,
-      "pSL_1": 0.011,
-      "pSL_2": 0.051
+      "base_nb_candles_ema_sell": 54,
+      "base_nb_candles_ema_sell2": 22,
+      "high_offset_sell_ema": 1.064,
+      "pHSL": -0.432,
+      "pPF_1": 0.015,
+      "pPF_2": 0.077,
+      "pSL_1": 0.018,
+      "pSL_2": 0.065
     },
     "protection": {
-      "cooldown_lookback": 5,
-      "low_profit_lookback": 53,
-      "low_profit_min_req": -0.02,
-      "low_profit_stop_duration": 121
+      "cooldown_lookback": 14,
+      "low_profit_lookback": 52,
+      "low_profit_min_req": 0.0,
+      "low_profit_stop_duration": 93
+    },
+    "roi": {
+      "0": 0.047,
+      "23": 0.035,
+      "69": 0.02,
+      "173": 1000
     },
     "stoploss": {
-      "stoploss": -0.306
+      "stoploss": -0.283
     }
   },
   "ft_stratparam_v": 1,
-  "export_time": "2021-12-02 08:58:56.454867+00:00"
+  "export_time": "2021-12-09 08:29:21.492423+00:00"
 }
