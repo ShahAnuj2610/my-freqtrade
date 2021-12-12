@@ -47,3 +47,18 @@ sudo swapoff /swapfile
 sudo rm /swapfile
 sudo cp /etc/fstab.bak /etc/fstab
 ```
+
+## run python script in background using screen
+```bash
+screen -S freqtrade -d -m python3 compare_file_content.py
+```
+
+## see logs in screen
+```bash
+screen -r freqtrade
+```
+
+## stop screen
+```bash
+screen -r freqtrade -X quit
+```
