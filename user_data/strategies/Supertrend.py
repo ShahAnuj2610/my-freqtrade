@@ -13,6 +13,8 @@ Supertrend strategy:
 """
 
 import logging
+from datetime import datetime
+
 from numpy.lib import math
 from freqtrade.strategy.interface import IStrategy
 from freqtrade.strategy import IntParameter, DecimalParameter, stoploss_from_open
@@ -157,8 +159,9 @@ class Supertrend(IStrategy):
 
         return dataframe
 
-        # credit to Perkmeister for this custom stoploss to help the strategy ride a green candle when the sell signal triggered
-    def custom_stoploss(self, current_profit: float) -> float:
+    # credit to Perkmeister for this custom stoploss to help the strategy ride a green candle when the sell signal triggered
+    def custom_stoploss(self, pair: str, trade: 'Trade', current_time: datetime,
+                        current_rate: float, current_profit: float, **kwargs) -> float:
 
         # hard stoploss profit
         HSL = self.pHSL.value
