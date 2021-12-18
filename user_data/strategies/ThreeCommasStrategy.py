@@ -18,9 +18,10 @@ log = logging.getLogger(__name__)
 
 class ThreeCommasStrategy(strat_dca):
 
-    def confirm_trade_entry(self, pair: str, order_type: str, amount: float, rate: float,
-                            time_in_force: str, current_time: datetime, **kwargs) -> bool:
-        val = super().confirm_trade_entry(pair, order_type, amount, rate, time_in_force, current_time, **kwargs)
+    def confirm_trade_entry(self, pair: str, order_type: str, amount: float, rate: float, time_in_force: str,
+                            **kwargs) -> bool:
+
+        val = super().confirm_trade_entry(pair, order_type, amount, rate, time_in_force, **kwargs)
 
         if val:
             coin, currency = pair.split('/')
