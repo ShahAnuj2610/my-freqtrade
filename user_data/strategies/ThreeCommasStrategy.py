@@ -6,7 +6,7 @@ from freqtrade.strategy.interface import IStrategy
 from dotenv import load_dotenv
 from py3cw.request import Py3CW
 
-from user_data.strategies.tbedit import tbedit
+from user_data.strategies.strat_dca import strat_dca
 
 load_dotenv()
 
@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 # credits to https://github.com/AlexBabescu
 
 
-class ThreeCommasStrategy(tbedit):
+class ThreeCommasStrategy(strat_dca):
 
     def confirm_trade_entry(self, pair: str, order_type: str, amount: float, rate: float,
                             time_in_force: str, current_time: datetime, **kwargs) -> bool:
