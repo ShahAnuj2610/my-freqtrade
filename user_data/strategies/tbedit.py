@@ -7,7 +7,6 @@ from pandas import DataFrame, Series
 from datetime import datetime, timezone
 from freqtrade.persistence import Trade
 
-from user_data.strategies.ClucHAnix_BB_RPB import ClucHAnix_BB_RPB_MOD
 from user_data.strategies.NostalgiaForInfinityNext import NostalgiaForInfinityNext
 
 logger = logging.getLogger(__name__)
@@ -36,8 +35,8 @@ class tbedit(NostalgiaForInfinityNext):
 
     trailing_buy_order_enabled = True
     # Note: Please change the values of trailing_expire below to your preference, if you want to
-    # trailing_expire_seconds = 1800  # NOTE 5m timeframe
-    trailing_expire_seconds = 1800 / 5  # NOTE 1m timeframe
+    trailing_expire_seconds = 1800  # NOTE 5m timeframe
+    # trailing_expire_seconds = 1800 / 5  # NOTE 1m timeframe
     # trailing_expire_seconds = 1800*3    #NOTE 15m timeframe
 
     # If the current candle goes above min_uptrend_trailing_profit % before trailing_expire_seconds_uptrend seconds, buy the coin
