@@ -3,7 +3,8 @@ import logging
 from datetime import datetime
 
 from freqtrade.persistence import Trade
-from user_data.strategies.TrailingBuyStrat2 import TrailingBuyStrat2
+from freqtrade.strategy import IntParameter
+
 from user_data.strategies.tbedit import tbedit
 
 logger = logging.getLogger(__name__)
@@ -15,10 +16,25 @@ class strat_dca(tbedit):
     safety_order_step_scale = 2
     safety_order_volume_scale = 2
 
+    buy_params = {
+        "dca_min_rsi": 36,
+    }
+
+    dca_min_rsi = IntParameter(35, 75, default=buy_params['dca_min_rsi'], space='buy', optimize=True)
+
     def adjust_trade_position(self, pair: str, trade: Trade,
                               current_time: datetime, current_rate: float, current_profit: float,
                               **kwargs):
         if current_profit > self.initial_safety_order_trigger:
+            return None
+
+        # credits to reinuvader for not blindly executing safety orders
+        # Obtain pair dataframe.
+        dataframe, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
+        # Only buy when it seems it's climbing back up
+        last_candle = dataframe.iloc[-1].squeeze()
+        if last_candle['rsi'] < self.dca_min_rsi.value:
+            logger.info(f"DCA for {pair} waiting for RSI({last_candle['rsi']}) to rise above {self.dca_min_rsi.value}")
             return None
 
         count_of_buys = 0
