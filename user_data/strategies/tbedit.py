@@ -67,7 +67,7 @@ class tbedit(ClucHAnix_BB_RPB_MOD):
 
     trailing_on_stoploss = False
     trailing_on_forcesell = False
-    trailing_on_roi = False
+    trailing_on_roi = True
     trailing_on_custom_sell = False
 
     ########################################################
