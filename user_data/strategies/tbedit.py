@@ -8,11 +8,12 @@ from datetime import datetime, timezone
 from freqtrade.persistence import Trade
 
 from user_data.strategies.ClucHAnix_BB_RPB import ClucHAnix_BB_RPB_MOD
+from user_data.strategies.NostalgiaForInfinityNext import NostalgiaForInfinityNext
 
 logger = logging.getLogger(__name__)
 
 
-class tbedit(ClucHAnix_BB_RPB_MOD):
+class tbedit(NostalgiaForInfinityNext):
     # Original trailing buy idea by @MukavaValkku, code by @tirail and @stash86
     # Original trailing sell idea by @Uzirox, code by @Uzirox and @stash86
     #
@@ -67,7 +68,7 @@ class tbedit(ClucHAnix_BB_RPB_MOD):
 
     trailing_on_stoploss = False
     trailing_on_forcesell = False
-    trailing_on_roi = True
+    trailing_on_roi = False
     trailing_on_custom_sell = False
 
     ########################################################

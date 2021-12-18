@@ -27,4 +27,4 @@ services:
       --config /freqtrade/user_data/config.private.json
       --config /freqtrade/user_data/blacklist-binance.json
       --config /freqtrade/user_data/pairlist-volume-binance-usdt.json
-      --strategy TrailingBuyStrat2
+      --strategy tbedit
