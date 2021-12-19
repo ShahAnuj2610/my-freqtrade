@@ -32,7 +32,8 @@ def check_for_github_repo_changes():
 def build_and_push_docker_image():
     if check_for_github_repo_changes():
         print('changes found, building and pushing docker image')
-        subprocess.call(['docker', 'build', '-t', 'anujshah1996/freqtrade:latest', 'freqtrade'])
+        # build docker image with no cache
+        subprocess.call(['docker', 'build', '-t', 'anujshah1996/freqtrade:latest', '--no-cache', '.'], cwd='freqtrade')
         subprocess.call(['docker', 'push', 'anujshah1996/freqtrade:latest'])
 
 
