@@ -35,6 +35,9 @@ def build_and_push_docker_image():
         # build docker image with no cache
         subprocess.call(['docker', 'build', '-t', 'anujshah1996/freqtrade:latest', '--no-cache', '.'], cwd='freqtrade')
         subprocess.call(['docker', 'push', 'anujshah1996/freqtrade:latest'])
+        # docker-compose up -d
+        subprocess.call(['docker-compose', 'build'], cwd='my-freqtrade')
+        subprocess.call(['docker-compose', 'up', '-d', '--force-recreate'], cwd='my-freqtrade')
 
 
 if __name__ == '__main__':
