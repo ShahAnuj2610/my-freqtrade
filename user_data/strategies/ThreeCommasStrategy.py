@@ -6,8 +6,6 @@ from freqtrade.strategy.interface import IStrategy
 from dotenv import load_dotenv
 from py3cw.request import Py3CW
 
-from user_data.strategies.strat_dca import strat_dca
-
 load_dotenv()
 
 log = logging.getLogger(__name__)
