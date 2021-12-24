@@ -42,6 +42,7 @@ if __name__ == '__main__':
         compare_file_content('user_data/pairlist-volume-binance-usdt.json')
         compare_file_content('user_data/blacklist-binance.json')
         compare_file_content('user_data/config.live.json')
+        compare_file_content('docker/Dockerfile.custom')
 
         # sleep for 15 minutes
         import time
