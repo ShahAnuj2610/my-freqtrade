@@ -32,6 +32,8 @@ def check_for_github_repo_changes():
 def build_and_push_docker_image():
     if check_for_github_repo_changes():
         print('changes found, building and pushing docker image')
+        # delete all dangling images
+        subprocess.call(['docker', 'rmi', '-f', '$(docker images -f "dangling=true" -q)', '--force'])
         # build docker image with no cache
         subprocess.call(['docker', 'build', '-t', 'anujshah1996/freqtrade:latest', '--no-cache', '.'], cwd='freqtrade')
         subprocess.call(['docker', 'push', 'anujshah1996/freqtrade:latest'])

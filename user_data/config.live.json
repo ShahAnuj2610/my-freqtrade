@@ -10,6 +10,7 @@
     "buy": 10,
     "sell": 30
   },
+  "position_adjustment_enable": true,
   "bid_strategy": {
     "price_side": "ask",
     "ask_last_balance": 0.0,

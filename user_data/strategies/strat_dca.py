@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class strat_dca(tbedit):
-    initial_safety_order_trigger = -0.05
+    initial_safety_order_trigger = -0.057
     max_safety_orders = 2
     safety_order_step_scale = 2
     safety_order_volume_scale = 2
