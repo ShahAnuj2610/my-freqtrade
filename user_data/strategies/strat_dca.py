@@ -20,6 +20,9 @@ class strat_dca(tbedit):
         "dca_min_rsi": 36,
     }
 
+    # append buy_params of parent class
+    buy_params.update(tbedit.buy_params)
+
     dca_min_rsi = IntParameter(35, 75, default=buy_params['dca_min_rsi'], space='buy', optimize=True)
 
     def adjust_trade_position(self, pair: str, trade: Trade,
