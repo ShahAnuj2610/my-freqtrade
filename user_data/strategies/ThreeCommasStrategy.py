@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 # credits to https://github.com/AlexBabescu
 
 
-class ThreeCommasStrategy(strat_dca):
+class ThreeCommasStrategy(IStrategy):
 
     def confirm_trade_entry(self, pair: str, order_type: str, amount: float, rate: float, time_in_force: str,
                             **kwargs) -> bool:
