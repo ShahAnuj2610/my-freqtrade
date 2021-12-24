@@ -1,0 +1,74 @@
+{
+  "strategy_name": "ClucHAnix_BB_RPB_MOD",
+  "params": {
+    "trailing": {
+      "trailing_stop": false,
+      "trailing_stop_positive": 0.001,
+      "trailing_stop_positive_offset": 0.012,
+      "trailing_only_offset_is_reached": false
+    },
+    "buy": {
+      "antipump_threshold": 0.254,
+      "buy_btc_safe_1d": -0.438,
+      "clucha_bbdelta_close": 0.02414,
+      "clucha_bbdelta_tail": 0.85068,
+      "clucha_close_bblower": 0.02677,
+      "clucha_closedelta_close": 0.00506,
+      "clucha_enabled": true,
+      "clucha_rocr_1h": 0.70639,
+      "cofi_adx": 23,
+      "cofi_ema": 1.014,
+      "cofi_enabled": false,
+      "cofi_ewo_high": 12.145,
+      "cofi_fastd": 9,
+      "cofi_fastk": 10,
+      "ewo_1_enabled": true,
+      "ewo_1_rsi_14": 32,
+      "ewo_1_rsi_4": 25,
+      "ewo_candles_buy": 28,
+      "ewo_candles_sell": 29,
+      "ewo_high": 14.176,
+      "ewo_high_offset": 0.84585,
+      "ewo_low": -16.146,
+      "ewo_low_enabled": false,
+      "ewo_low_offset": 1.12525,
+      "ewo_low_rsi_4": 49,
+      "lambo1_ema_14_factor": 1.053,
+      "lambo1_enabled": true,
+      "lambo1_rsi_14_limit": 7,
+      "lambo1_rsi_4_limit": 45,
+      "lambo2_ema_14_factor": 1.157,
+      "lambo2_enabled": false,
+      "lambo2_rsi_14_limit": 44,
+      "lambo2_rsi_4_limit": 47,
+      "local_trend_bb_factor": 0.999,
+      "local_trend_closedelta": 14.041,
+      "local_trend_ema_diff": 0.035,
+      "local_trend_enabled": false,
+      "nfi32_cti_limit": -0.12213,
+      "nfi32_enabled": true,
+      "nfi32_rsi_14": 19,
+      "nfi32_rsi_4": 47,
+      "nfi32_sma_factor": 0.93187
+    },
+    "sell": {
+      "pHSL": -0.393,
+      "pPF_1": 0.019,
+      "pPF_2": 0.065,
+      "pSL_1": 0.018,
+      "pSL_2": 0.046
+    },
+    "protection": {},
+    "roi": {
+      "0": 0.045,
+      "3": 0.024,
+      "15": 0.008,
+      "18": 1000
+    },
+    "stoploss": {
+      "stoploss": -0.184
+    }
+  },
+  "ft_stratparam_v": 1,
+  "export_time": "2021-12-21 21:56:35.032009+00:00"
+}
