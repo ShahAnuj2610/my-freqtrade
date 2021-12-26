@@ -4,6 +4,9 @@ from datetime import datetime
 
 from freqtrade.persistence import Trade
 from freqtrade.strategy import IntParameter
+from pandas import DataFrame
+
+import talib.abstract as ta
 
 from user_data.strategies.tbedit import tbedit
 
@@ -24,6 +27,11 @@ class strat_dca(tbedit):
     buy_params.update(tbedit.buy_params)
 
     dca_min_rsi = IntParameter(35, 75, default=buy_params['dca_min_rsi'], space='buy', optimize=True)
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe = super().populate_indicators(dataframe, metadata)
+        dataframe['rsi'] = ta.RSI(dataframe, timeperiod=14)
+        return dataframe
 
     def adjust_trade_position(self, pair: str, trade: Trade,
                               current_time: datetime, current_rate: float, current_profit: float,
