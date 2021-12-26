@@ -75,3 +75,15 @@ class strat_dca(tbedit):
                     return None
 
         return None
+
+    def confirm_trade_exit(self, pair: str, trade: Trade, order_type: str, amount: float,
+                           rate: float, time_in_force: str, sell_reason: str, **kwargs) -> bool:
+        # call parent confirm_trade_exit
+        if not super().confirm_trade_exit(pair, trade, order_type, amount, rate, time_in_force, sell_reason, **kwargs):
+            return False
+
+        # check if profit is positive
+        if trade.calc_profit_ratio(rate) > 0:
+            return True
+
+        return False
