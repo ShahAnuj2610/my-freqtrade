@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 
 
 class strat_dca(tbedit):
+    sell_profit_only = True
+    sell_profit_offset = 0.005
+
     initial_safety_order_trigger = -0.057
     max_safety_orders = 2
     safety_order_step_scale = 2
