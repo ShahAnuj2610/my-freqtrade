@@ -1124,7 +1124,7 @@ def pmax(df, period, multiplier, length, MAtype, src):
     elif MAtype == 4:
         mavalue = ta.SMA(masrc, timeperiod=length)
     elif MAtype == 5:
-        mavalue = VIDYA(df, length=length)
+        mavalue = ta.VIDYA(df, length=length)
     elif MAtype == 6:
         mavalue = ta.TEMA(masrc, timeperiod=length)
     elif MAtype == 7:
