@@ -1,6 +1,7 @@
 import math
 import logging
 from datetime import datetime
+from typing import Optional
 
 from freqtrade.persistence import Trade
 from freqtrade.strategy import IntParameter
@@ -14,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class strat_dca(tbedit):
+    position_adjustment_enable = True
+
     sell_profit_only = True
     sell_profit_offset = 0.005
 
@@ -21,6 +24,17 @@ class strat_dca(tbedit):
     max_safety_orders = 3
     safety_order_step_scale = 2
     safety_order_volume_scale = 2
+
+    max_dca_multiplier = (1 + max_safety_orders)
+    if max_safety_orders > 0:
+        if safety_order_volume_scale > 1:
+            max_dca_multiplier = (2 + (safety_order_volume_scale * (
+                    math.pow(safety_order_volume_scale, (max_safety_orders - 1)) - 1) / (
+                                               safety_order_volume_scale - 1)))
+        elif safety_order_volume_scale < 1:
+            max_dca_multiplier = (2 + (safety_order_volume_scale * (
+                    1 - math.pow(safety_order_volume_scale, (max_safety_orders - 1))) / (
+                                               1 - safety_order_volume_scale)))
 
     buy_params = {
         "dca_min_rsi": 36,
@@ -36,9 +50,21 @@ class strat_dca(tbedit):
         dataframe['rsi'] = ta.RSI(dataframe, timeperiod=14)
         return dataframe
 
-    def adjust_trade_position(self, pair: str, trade: Trade,
-                              current_time: datetime, current_rate: float, current_profit: float,
-                              **kwargs):
+    # Let unlimited stakes leave funds open for DCA orders
+    def custom_stake_amount(self, pair: str, current_time: datetime, current_rate: float,
+                            proposed_stake: float, min_stake: float, max_stake: float,
+                            **kwargs) -> float:
+        if self.config['stake_amount'] == 'unlimited':
+            return proposed_stake / self.max_dca_multiplier
+
+        # Use default stake amount.
+        return proposed_stake
+
+    def adjust_trade_position(self, trade: Trade, current_time: datetime,
+                              current_rate: float, current_profit: float, min_stake: float,
+                              max_stake: float, **kwargs) -> Optional[float]:
+        pair = trade.pair
+
         if current_profit > self.initial_safety_order_trigger:
             return None
 
@@ -51,30 +77,34 @@ class strat_dca(tbedit):
             logger.info(f"DCA for {pair} waiting for RSI({last_candle['rsi']}) to rise above {self.dca_min_rsi.value}")
             return None
 
-        count_of_buys = 0
-        for order in trade.orders:
-            if order.ft_is_open or order.ft_order_side != 'buy':
-                continue
-            if order.status == "closed":
-                count_of_buys += 1
+        count_of_buys = trade.nr_of_successful_buys
 
         if 1 <= count_of_buys <= self.max_safety_orders:
-
-            safety_order_trigger = abs(self.initial_safety_order_trigger) + (
-                    abs(self.initial_safety_order_trigger) * self.safety_order_step_scale * (
-                    math.pow(self.safety_order_step_scale, (count_of_buys - 1)) - 1) / (
-                            self.safety_order_step_scale - 1))
+            safety_order_trigger = (abs(self.initial_safety_order_trigger) * count_of_buys)
+            if self.safety_order_step_scale > 1:
+                safety_order_trigger = abs(self.initial_safety_order_trigger) + (
+                        abs(self.initial_safety_order_trigger) * self.safety_order_step_scale * (
+                        math.pow(self.safety_order_step_scale, (count_of_buys - 1)) - 1) / (
+                                self.safety_order_step_scale - 1))
+            elif self.safety_order_step_scale < 1:
+                safety_order_trigger = abs(self.initial_safety_order_trigger) + (
+                        abs(self.initial_safety_order_trigger) * self.safety_order_step_scale * (
+                        1 - math.pow(self.safety_order_step_scale, (count_of_buys - 1))) / (
+                                1 - self.safety_order_step_scale))
 
             if current_profit <= (-1 * abs(safety_order_trigger)):
                 try:
-                    stake_amount = self.wallets.get_trade_stake_amount(pair, None)
+                    stake_amount = self.wallets.get_trade_stake_amount(trade.pair, None)
+                    # This calculates base order size
+                    stake_amount = stake_amount / self.max_dca_multiplier
+                    # This then calculates current safety order size
                     stake_amount = stake_amount * math.pow(self.safety_order_volume_scale, (count_of_buys - 1))
                     amount = stake_amount / current_rate
                     logger.info(
-                        f"Initiating safety order buy #{count_of_buys} for {pair} with stake amount of {stake_amount} which equals {amount}")
+                        f"Initiating safety order buy #{count_of_buys} for {trade.pair} with stake amount of {stake_amount} which equals {amount}")
                     return stake_amount
                 except Exception as exception:
-                    logger.info(f'Error occured while trying to get stake amount for {pair}: {str(exception)}')
+                    logger.info(f'Error occured while trying to get stake amount for {trade.pair}: {str(exception)}')
                     return None
 
         return None
@@ -86,7 +116,7 @@ class strat_dca(tbedit):
             return False
 
         # check if profit is positive
-        if trade.calc_profit_ratio(rate) > 0:
+        if trade.calc_profit_ratio(rate) > 0.005:
             return True
 
         return False
