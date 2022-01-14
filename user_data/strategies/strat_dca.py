@@ -80,31 +80,21 @@ class strat_dca(tbedit):
         count_of_buys = trade.nr_of_successful_buys
 
         if 1 <= count_of_buys <= self.max_safety_orders:
-            safety_order_trigger = (abs(self.initial_safety_order_trigger) * count_of_buys)
-            if self.safety_order_step_scale > 1:
-                safety_order_trigger = abs(self.initial_safety_order_trigger) + (
-                        abs(self.initial_safety_order_trigger) * self.safety_order_step_scale * (
-                        math.pow(self.safety_order_step_scale, (count_of_buys - 1)) - 1) / (
-                                self.safety_order_step_scale - 1))
-            elif self.safety_order_step_scale < 1:
-                safety_order_trigger = abs(self.initial_safety_order_trigger) + (
-                        abs(self.initial_safety_order_trigger) * self.safety_order_step_scale * (
-                        1 - math.pow(self.safety_order_step_scale, (count_of_buys - 1))) / (
-                                1 - self.safety_order_step_scale))
+            safety_order_trigger = abs(self.initial_safety_order_trigger) + (
+                    abs(self.initial_safety_order_trigger) * self.safety_order_step_scale * (
+                    math.pow(self.safety_order_step_scale, (count_of_buys - 1)) - 1) / (
+                            self.safety_order_step_scale - 1))
 
             if current_profit <= (-1 * abs(safety_order_trigger)):
                 try:
-                    stake_amount = self.wallets.get_trade_stake_amount(trade.pair, None)
-                    # This calculates base order size
-                    stake_amount = stake_amount / self.max_dca_multiplier
-                    # This then calculates current safety order size
+                    stake_amount = self.wallets.get_trade_stake_amount(pair, None)
                     stake_amount = stake_amount * math.pow(self.safety_order_volume_scale, (count_of_buys - 1))
                     amount = stake_amount / current_rate
                     logger.info(
-                        f"Initiating safety order buy #{count_of_buys} for {trade.pair} with stake amount of {stake_amount} which equals {amount}")
+                        f"Initiating safety order buy #{count_of_buys} for {pair} with stake amount of {stake_amount} which equals {amount}")
                     return stake_amount
                 except Exception as exception:
-                    logger.info(f'Error occured while trying to get stake amount for {trade.pair}: {str(exception)}')
+                    logger.info(f'Error occured while trying to get stake amount for {pair}: {str(exception)}')
                     return None
 
         return None
