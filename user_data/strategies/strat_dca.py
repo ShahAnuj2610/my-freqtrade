@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 class strat_dca(tbedit):
     position_adjustment_enable = True
 
+    # disable stoploss
+    stoploss = -1
+
     sell_profit_only = True
     sell_profit_offset = 0.005
 
@@ -80,14 +83,25 @@ class strat_dca(tbedit):
         count_of_buys = trade.nr_of_successful_buys
 
         if 1 <= count_of_buys <= self.max_safety_orders:
-            safety_order_trigger = abs(self.initial_safety_order_trigger) + (
-                    abs(self.initial_safety_order_trigger) * self.safety_order_step_scale * (
-                    math.pow(self.safety_order_step_scale, (count_of_buys - 1)) - 1) / (
-                            self.safety_order_step_scale - 1))
+            safety_order_trigger = (abs(self.initial_safety_order_trigger) * count_of_buys)
+            if self.safety_order_step_scale > 1:
+                safety_order_trigger = abs(self.initial_safety_order_trigger) + (
+                        abs(self.initial_safety_order_trigger) * self.safety_order_step_scale * (
+                        math.pow(self.safety_order_step_scale, (count_of_buys - 1)) - 1) / (
+                                self.safety_order_step_scale - 1))
+            elif self.safety_order_step_scale < 1:
+                safety_order_trigger = abs(self.initial_safety_order_trigger) + (
+                        abs(self.initial_safety_order_trigger) * self.safety_order_step_scale * (
+                        1 - math.pow(self.safety_order_step_scale, (count_of_buys - 1))) / (
+                                1 - self.safety_order_step_scale))
 
             if current_profit <= (-1 * abs(safety_order_trigger)):
                 try:
                     stake_amount = self.wallets.get_trade_stake_amount(pair, None)
+                    # calculate when stake amount will be unlimited
+                    if self.config['stake_amount'] == 'unlimited':
+                        # This calculates base order size
+                        stake_amount = stake_amount / self.max_dca_multiplier
                     stake_amount = stake_amount * math.pow(self.safety_order_volume_scale, (count_of_buys - 1))
                     amount = stake_amount / current_rate
                     logger.info(
