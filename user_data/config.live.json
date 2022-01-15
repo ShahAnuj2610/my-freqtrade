@@ -2,7 +2,7 @@
   "dry_run": false,
   "max_open_trades": 5,
   "stake_currency": "USDT",
-  "stake_amount": 25,
+  "stake_amount": 30,
   "fiat_display_currency": "INR",
   "cancel_open_orders_on_exit": false,
   "unfilledtimeout": {
