@@ -98,7 +98,7 @@ class strat_dca(tbedit):
 
             if current_profit <= (-1 * abs(safety_order_trigger)):
                 try:
-                    stake_amount = self.wallets.get_trade_stake_amount(pair, None)
+                    stake_amount = filled_buys[0].cost
                     # calculate when stake amount will be unlimited
                     if self.config['stake_amount'] == 'unlimited':
                         # This calculates base order size
