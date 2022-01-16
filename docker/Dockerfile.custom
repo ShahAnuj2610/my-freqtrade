@@ -1,4 +1,4 @@
-FROM anujshah1996/freqtrade:latest
+FROM freqtradeorg/freqtrade:develop
 
 COPY --chown=1000:1000  requirements.txt /freqtrade
 

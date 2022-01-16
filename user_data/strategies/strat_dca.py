@@ -80,7 +80,8 @@ class strat_dca(tbedit):
             logger.info(f"DCA for {pair} waiting for RSI({last_candle['rsi']}) to rise above {self.dca_min_rsi.value}")
             return None
 
-        count_of_buys = trade.nr_of_successful_buys
+        filled_buys = trade.select_filled_orders('buy')
+        count_of_buys = len(filled_buys)
 
         if 1 <= count_of_buys <= self.max_safety_orders:
             safety_order_trigger = (abs(self.initial_safety_order_trigger) * count_of_buys)
