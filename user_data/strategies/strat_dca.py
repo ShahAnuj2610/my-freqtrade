@@ -24,7 +24,7 @@ class strat_dca(tbedit):
     sell_profit_offset = 0.005
 
     initial_safety_order_trigger = -0.057
-    max_safety_orders = 3
+    max_safety_orders = 4
     safety_order_step_scale = 2
     safety_order_volume_scale = 2
 
