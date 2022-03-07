@@ -3,9 +3,11 @@
 
 # --- Do not remove these libs ---
 # --- Do not remove these libs ---
+import logging
+import math
 from logging import FATAL
 from freqtrade.strategy.interface import IStrategy
-from typing import Dict, List
+from typing import Dict, List, Optional
 from functools import reduce
 from pandas import DataFrame
 # --------------------------------
@@ -16,8 +18,11 @@ import datetime
 from technical.util import resample_to_interval, resampled_merge
 from datetime import datetime, timedelta
 from freqtrade.persistence import Trade
-from freqtrade.strategy import stoploss_from_open, merge_informative_pair, DecimalParameter, IntParameter, CategoricalParameter
+from freqtrade.strategy import stoploss_from_open, merge_informative_pair, DecimalParameter, IntParameter, \
+    CategoricalParameter
 import technical.indicators as ftt
+
+logger = logging.getLogger(__name__)
 
 # @Rallipanos
 # @pluxury
@@ -177,7 +182,7 @@ class NASOSv4(IStrategy):
         if (current_profit > PF_2):
             sl_profit = SL_2 + (current_profit - PF_2)
         elif (current_profit > PF_1):
-            sl_profit = SL_1 + ((current_profit - PF_1)*(SL_2 - SL_1)/(PF_2 - PF_1))
+            sl_profit = SL_1 + ((current_profit - PF_1) * (SL_2 - SL_1) / (PF_2 - PF_1))
         else:
             sl_profit = HSL
 
@@ -195,7 +200,8 @@ class NASOSv4(IStrategy):
 
         if (last_candle is not None):
             if (sell_reason in ['sell_signal']):
-                if (last_candle['hma_50']*1.149 > last_candle['ema_100']) and (last_candle['close'] < last_candle['ema_100']*0.951):  # *1.2
+                if (last_candle['hma_50'] * 1.149 > last_candle['ema_100']) and (
+                        last_candle['close'] < last_candle['ema_100'] * 0.951):  # *1.2
                     return False
 
         # slippage
@@ -287,36 +293,40 @@ class NASOSv4(IStrategy):
 
         dataframe.loc[
             (
-                (dataframe['rsi_fast'] < 35) &
-                (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset.value)) &
-                (dataframe['EWO'] > self.ewo_high.value) &
-                (dataframe['rsi'] < self.rsi_buy.value) &
-                (dataframe['volume'] > 0) &
-                (dataframe['close'] < (
-                    dataframe[f'ma_sell_{self.base_nb_candles_sell.value}'] * self.high_offset.value))
+                    (dataframe['rsi_fast'] < 35) &
+                    (dataframe['close'] < (
+                            dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset.value)) &
+                    (dataframe['EWO'] > self.ewo_high.value) &
+                    (dataframe['rsi'] < self.rsi_buy.value) &
+                    (dataframe['volume'] > 0) &
+                    (dataframe['close'] < (
+                            dataframe[f'ma_sell_{self.base_nb_candles_sell.value}'] * self.high_offset.value))
             ),
             ['buy', 'buy_tag']] = (1, 'ewo1')
 
         dataframe.loc[
             (
-                (dataframe['rsi_fast'] < 35) &
-                (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset_2.value)) &
-                (dataframe['EWO'] > self.ewo_high_2.value) &
-                (dataframe['rsi'] < self.rsi_buy.value) &
-                (dataframe['volume'] > 0) &
-                (dataframe['close'] < (dataframe[f'ma_sell_{self.base_nb_candles_sell.value}'] * self.high_offset.value)) &
-                (dataframe['rsi'] < 25)
+                    (dataframe['rsi_fast'] < 35) &
+                    (dataframe['close'] < (
+                            dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset_2.value)) &
+                    (dataframe['EWO'] > self.ewo_high_2.value) &
+                    (dataframe['rsi'] < self.rsi_buy.value) &
+                    (dataframe['volume'] > 0) &
+                    (dataframe['close'] < (
+                            dataframe[f'ma_sell_{self.base_nb_candles_sell.value}'] * self.high_offset.value)) &
+                    (dataframe['rsi'] < 25)
             ),
             ['buy', 'buy_tag']] = (1, 'ewo2')
 
         dataframe.loc[
             (
-                (dataframe['rsi_fast'] < 35) &
-                (dataframe['close'] < (dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset.value)) &
-                (dataframe['EWO'] < self.ewo_low.value) &
-                (dataframe['volume'] > 0) &
-                (dataframe['close'] < (
-                    dataframe[f'ma_sell_{self.base_nb_candles_sell.value}'] * self.high_offset.value))
+                    (dataframe['rsi_fast'] < 35) &
+                    (dataframe['close'] < (
+                            dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset.value)) &
+                    (dataframe['EWO'] < self.ewo_low.value) &
+                    (dataframe['volume'] > 0) &
+                    (dataframe['close'] < (
+                            dataframe[f'ma_sell_{self.base_nb_candles_sell.value}'] * self.high_offset.value))
             ),
             ['buy', 'buy_tag']] = (1, 'ewolow')
 
@@ -331,17 +341,19 @@ class NASOSv4(IStrategy):
 
         conditions.append(
             ((dataframe['close'] > dataframe['sma_9']) &
-                (dataframe['close'] > (dataframe[f'ma_sell_{self.base_nb_candles_sell.value}'] * self.high_offset_2.value)) &
-                (dataframe['rsi'] > 50) &
-                (dataframe['volume'] > 0) &
-                (dataframe['rsi_fast'] > dataframe['rsi_slow'])
+             (dataframe['close'] > (
+                     dataframe[f'ma_sell_{self.base_nb_candles_sell.value}'] * self.high_offset_2.value)) &
+             (dataframe['rsi'] > 50) &
+             (dataframe['volume'] > 0) &
+             (dataframe['rsi_fast'] > dataframe['rsi_slow'])
              )
             |
             (
-                (dataframe['close'] < dataframe['hma_50']) &
-                (dataframe['close'] > (dataframe[f'ma_sell_{self.base_nb_candles_sell.value}'] * self.high_offset.value)) &
-                (dataframe['volume'] > 0) &
-                (dataframe['rsi_fast'] > dataframe['rsi_slow'])
+                    (dataframe['close'] < dataframe['hma_50']) &
+                    (dataframe['close'] > (
+                            dataframe[f'ma_sell_{self.base_nb_candles_sell.value}'] * self.high_offset.value)) &
+                    (dataframe['volume'] > 0) &
+                    (dataframe['rsi_fast'] > dataframe['rsi_slow'])
             )
 
         )
@@ -350,6 +362,119 @@ class NASOSv4(IStrategy):
             dataframe.loc[
                 reduce(lambda x, y: x | y, conditions),
                 'sell'
-            ]=1
+            ] = 1
 
         return dataframe
+
+
+class strat_dca_nasos(NASOSv4):
+    position_adjustment_enable = True
+
+    buy_params.update({
+        "dca_min_rsi": 36,
+        "initial_safety_order_trigger": -0.057,
+        "max_safety_orders": 4,
+        "safety_order_step_scale": 2,
+        "safety_order_volume_scale": 2
+    })
+
+    dca_min_rsi = IntParameter(30, 75, default=buy_params['dca_min_rsi'], space='buy', optimize=True)
+    initial_safety_order_trigger = DecimalParameter(-0.085, -0.015,
+                                                    default=buy_params['initial_safety_order_trigger'],
+                                                    space='buy', optimize=True, decimals=3)
+    max_safety_orders = IntParameter(1, 5, default=buy_params['max_safety_orders'], space='buy', optimize=True)
+    safety_order_step_scale = DecimalParameter(0, 3, default=buy_params['safety_order_step_scale'],
+                                               space='buy',
+                                               optimize=True, decimals=2)
+    safety_order_volume_scale = DecimalParameter(0, 3, default=buy_params['safety_order_volume_scale'],
+                                                 space='buy',
+                                                 optimize=True, decimals=2)
+
+    max_dca_multiplier = (1 + max_safety_orders.value)
+    if max_safety_orders.value > 0:
+        if safety_order_volume_scale.value > 1:
+            max_dca_multiplier = (2 + (safety_order_volume_scale.value * (
+                    math.pow(safety_order_volume_scale.value, (max_safety_orders.value - 1)) - 1) / (
+                                               safety_order_volume_scale.value - 1)))
+        elif safety_order_volume_scale.value < 1:
+            max_dca_multiplier = (2 + (safety_order_volume_scale.value * (
+                    1 - math.pow(safety_order_volume_scale.value, (max_safety_orders.value - 1))) / (
+                                               1 - safety_order_volume_scale.value)))
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe = super().populate_indicators(dataframe, metadata)
+        dataframe['rsi'] = ta.RSI(dataframe, timeperiod=14)
+        return dataframe
+
+    # Let unlimited stakes leave funds open for DCA orders
+    def custom_stake_amount(self, pair: str, current_time: datetime, current_rate: float,
+                            proposed_stake: float, min_stake: float, max_stake: float,
+                            **kwargs) -> float:
+        if self.config['stake_amount'] == 'unlimited':
+            return proposed_stake / self.max_dca_multiplier
+
+        # Use default stake amount.
+        return proposed_stake
+
+    def adjust_trade_position(self, trade: Trade, current_time: datetime,
+                              current_rate: float, current_profit: float, min_stake: float,
+                              max_stake: float, **kwargs) -> Optional[float]:
+        pair = trade.pair
+
+        if current_profit > self.initial_safety_order_trigger.value:
+            return None
+
+        # credits to reinuvader for not blindly executing safety orders
+        # Obtain pair dataframe.
+        dataframe, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
+        # Only buy when it seems it's climbing back up
+        last_candle = dataframe.iloc[-1].squeeze()
+        if last_candle['rsi'] < self.dca_min_rsi.value:
+            logger.info(f"DCA for {pair} waiting for RSI({last_candle['rsi']}) to rise above {self.dca_min_rsi.value}")
+            return None
+
+        filled_buys = trade.select_filled_orders('buy')
+        count_of_buys = len(filled_buys)
+
+        if 1 <= count_of_buys <= self.max_safety_orders.value:
+            safety_order_trigger = (abs(self.initial_safety_order_trigger.value) * count_of_buys)
+            if self.safety_order_step_scale.value > 1:
+                safety_order_trigger = abs(self.initial_safety_order_trigger.value) + (
+                        abs(self.initial_safety_order_trigger.value) * self.safety_order_step_scale.value * (
+                        math.pow(self.safety_order_step_scale.value, (count_of_buys - 1)) - 1) / (
+                                self.safety_order_step_scale.value - 1))
+            elif self.safety_order_step_scale.value < 1:
+                safety_order_trigger = abs(self.initial_safety_order_trigger.value) + (
+                        abs(self.initial_safety_order_trigger.value) * self.safety_order_step_scale.value * (
+                        1 - math.pow(self.safety_order_step_scale.value, (count_of_buys - 1))) / (
+                                1 - self.safety_order_step_scale.value))
+
+            if current_profit <= (-1 * abs(safety_order_trigger)):
+                try:
+                    stake_amount = filled_buys[0].cost
+                    # calculate when stake amount will be unlimited
+                    if self.config['stake_amount'] == 'unlimited':
+                        # This calculates base order size
+                        stake_amount = stake_amount / self.max_dca_multiplier
+                    stake_amount = stake_amount * math.pow(self.safety_order_volume_scale.value, (count_of_buys - 1))
+                    amount = stake_amount / current_rate
+                    logger.info(
+                        f"Initiating safety order buy #{count_of_buys} for {pair} with stake amount of {stake_amount} which equals {amount}")
+                    return stake_amount
+                except Exception as exception:
+                    logger.info(f'Error occured while trying to get stake amount for {pair}: {str(exception)}')
+                    return None
+
+        return None
+
+    def confirm_trade_exit(self, pair: str, trade: Trade, order_type: str, amount: float,
+                           rate: float, time_in_force: str, sell_reason: str, **kwargs) -> bool:
+        # call parent confirm_trade_exit
+        if not super().confirm_trade_exit(pair, trade, order_type, amount, rate, time_in_force, sell_reason, **kwargs):
+            return False
+
+        # check if profit is positive
+        if trade.calc_profit_ratio(rate) > 0.005:
+            return True
+
+        return False
