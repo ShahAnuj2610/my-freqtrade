@@ -11,6 +11,7 @@ from freqtrade.strategy.interface import IStrategy
 from typing import Dict, List
 from functools import reduce
 from pandas import DataFrame, Series
+import pandas_ta as pta
 import talib.abstract as ta
 import numpy as np
 import freqtrade.vendor.qtpylib.indicators as qtpylib
@@ -19,7 +20,7 @@ from technical.util import resample_to_interval, resampled_merge
 from datetime import datetime, timedelta
 from freqtrade.persistence import Trade
 from freqtrade.strategy import stoploss_from_open, merge_informative_pair, DecimalParameter, IntParameter, \
-    CategoricalParameter
+    CategoricalParameter, BooleanParameter
 from freqtrade.exchange import timeframe_to_minutes
 import technical.indicators as ftt
 from technical.indicators import zema
@@ -50,6 +51,17 @@ buy_params = {
     "high_offset_sell_ema": 0.994,
     "rsi_buy": 71,
     "max_change_pump": 35,
+    "cofi_adx": 8,
+    "cofi_ema": 0.639,
+    "cofi_enabled": False,
+    "cofi_ewo_high": 5.6,
+    "cofi_fastd": 40,
+    "cofi_fastk": 13,
+    "nfi32_cti_limit": -1.09639,
+    "nfi32_enabled": True,
+    "nfi32_rsi_14": 15,
+    "nfi32_rsi_4": 49,
+    "nfi32_sma_factor": 0.93391,
 }
 
 # Sell hyperspace params:
@@ -159,6 +171,23 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
     low_offset_ema2 = DecimalParameter(0.9, 1.1, default=buy_params['low_offset_ema2'], space='buy', optimize=True)
 
     max_change_pump = IntParameter(10, 50, default=buy_params['max_change_pump'], space='buy', optimize=True)
+
+    # cofi
+    cofi_ema = DecimalParameter(0.6, 1.4, default=buy_params['cofi_ema'], space='buy', optimize=True)
+    cofi_fastk = IntParameter(1, 100, default=buy_params['cofi_fastk'], space='buy', optimize=True)
+    cofi_fastd = IntParameter(1, 100, default=buy_params['cofi_fastd'], space='buy', optimize=True)
+    cofi_adx = IntParameter(1, 100, default=buy_params['cofi_adx'], space='buy', optimize=True)
+    cofi_ewo_high = DecimalParameter(1.0, 15.0, default=buy_params['cofi_ewo_high'], space='buy', optimize=True)
+    cofi_enabled = BooleanParameter(default=buy_params['cofi_enabled'], space='buy', optimize=True)
+
+    # nfi32
+    nfi32_rsi_4 = IntParameter(1, 100, default=buy_params['nfi32_rsi_4'], space='buy', optimize=True)
+    nfi32_rsi_14 = IntParameter(1, 100, default=buy_params['nfi32_rsi_14'], space='buy', optimize=True)
+    nfi32_sma_factor = DecimalParameter(0.7, 1.2, default=buy_params['nfi32_sma_factor'], decimals=5, space='buy',
+                                        optimize=True)
+    nfi32_cti_limit = DecimalParameter(-1.2, 0, default=buy_params['nfi32_cti_limit'], decimals=5, space='buy',
+                                       optimize=True)
+    nfi32_enabled = BooleanParameter(default=buy_params['nfi32_enabled'], space='buy', optimize=True)
 
     # Trailing stop:
     trailing_stop = False
@@ -386,6 +415,7 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
 
         dataframe['hma_50'] = qtpylib.hull_moving_average(dataframe['close'], window=50)
         dataframe['ema_100'] = ta.EMA(dataframe, timeperiod=100)
+        dataframe['ema_8'] = ta.EMA(dataframe, timeperiod=8)
 
         dataframe['sma_9'] = ta.SMA(dataframe, timeperiod=9)
         # Elliot
@@ -447,6 +477,21 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
 
         # pump detector
         dataframe['pump'] = pump_warning(dataframe, perc=int(self.max_change_pump.value))
+
+        # Cofi
+        stoch_fast = ta.STOCHF(dataframe, 5, 3, 0, 3, 0)
+        dataframe['fastd'] = stoch_fast['fastd']
+        dataframe['fastk'] = stoch_fast['fastk']
+        dataframe['adx'] = ta.ADX(dataframe)
+
+        dataframe['rsi_4'] = ta.RSI(dataframe, timeperiod=4)
+        dataframe['rsi_14'] = ta.RSI(dataframe, timeperiod=14)
+        dataframe['rsi_20'] = ta.RSI(dataframe, timeperiod=20)
+
+        dataframe['sma_15'] = ta.SMA(dataframe, timeperiod=15)
+
+        # CTI
+        dataframe['cti'] = pta.cti(dataframe["close"], length=20)
 
         return dataframe
 
@@ -591,6 +636,29 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
                     )
             ),
             ['buy', 'buy_tag']] = (1, 'zema')
+
+        # cofi
+        cofi = (
+                bool(self.cofi_enabled.value) &
+                (dataframe['open'] < dataframe['ema_8'] * self.cofi_ema.value) &
+                (qtpylib.crossed_above(dataframe['fastk'], dataframe['fastd'])) &
+                (dataframe['fastk'] < self.cofi_fastk.value) &
+                (dataframe['fastd'] < self.cofi_fastd.value) &
+                (dataframe['adx'] > self.cofi_adx.value) &
+                (dataframe['EWO'] > self.cofi_ewo_high.value)
+        )
+        dataframe.loc[cofi, ['buy', 'buy_tag']] = (1, 'cofi')
+
+        # nfi
+        nfi_32 = (
+                bool(self.nfi32_enabled.value) &
+                (dataframe['rsi_20'] < dataframe['rsi_20'].shift(1)) &
+                (dataframe['rsi_4'] < self.nfi32_rsi_4.value) &
+                (dataframe['rsi_14'] > self.nfi32_rsi_14.value) &
+                (dataframe['close'] < dataframe['sma_15'] * self.nfi32_sma_factor.value) &
+                (dataframe['cti'] < self.nfi32_cti_limit.value)
+        )
+        dataframe.loc[nfi_32, ['buy', 'buy_tag']] = (1, 'nfi32')
 
         return dataframe
 
