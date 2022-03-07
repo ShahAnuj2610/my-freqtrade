@@ -63,6 +63,17 @@ sell_params = {
     "pHSL": -0.15,
 }
 
+# Protection hyperspace params:
+protection_params = {
+    "low_profit_lookback": 48,
+    "low_profit_min_req": 0.04,
+    "low_profit_stop_duration": 14,
+
+    "cooldown_lookback": 2,  # value loaded from strategy
+    "stoploss_lookback": 72,  # value loaded from strategy
+    "stoploss_stop_duration": 20,  # value loaded from strategy
+}
+
 
 class NASOSRv6_private_Reinuvader_20211121(IStrategy):
     INTERFACE_VERSION = 2
@@ -87,6 +98,18 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
     # Protection
     fast_ewo = 50
     slow_ewo = 200
+
+    cooldown_lookback = IntParameter(2, 48, default=protection_params['cooldown_lookback'], space="protection",
+                                     optimize=True)
+
+    low_profit_optimize = True
+    low_profit_lookback = IntParameter(2, 60, default=protection_params['low_profit_lookback'], space="protection",
+                                       optimize=low_profit_optimize)
+    low_profit_stop_duration = IntParameter(12, 200, default=protection_params['low_profit_stop_duration'],
+                                            space="protection", optimize=low_profit_optimize)
+    low_profit_min_req = DecimalParameter(-0.05, 0.05, default=protection_params['low_profit_min_req'],
+                                          space="protection", decimals=2,
+                                          optimize=low_profit_optimize)
 
     lookback_candles = IntParameter(1, 36, default=buy_params['lookback_candles'], space='buy', optimize=True)
     profit_threshold = DecimalParameter(1.0, 1.08, default=buy_params['profit_threshold'], space='buy', optimize=True)
@@ -181,6 +204,24 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
         'retries': 3,
         'max_slippage': -0.02
     }
+
+    @property
+    def protections(self):
+        prot = []
+
+        prot.append({
+            "method": "CooldownPeriod",
+            "stop_duration_candles": self.cooldown_lookback.value
+        })
+        prot.append({
+            "method": "LowProfitPairs",
+            "lookback_period_candles": self.low_profit_lookback.value,
+            "trade_limit": 1,
+            "stop_duration": int(self.low_profit_stop_duration.value),
+            "required_profit": self.low_profit_min_req.value
+        })
+
+        return prot
 
     def custom_sell(self, pair: str, trade: 'Trade', current_time: 'datetime', current_rate: float,
                     current_profit: float, **kwargs):
