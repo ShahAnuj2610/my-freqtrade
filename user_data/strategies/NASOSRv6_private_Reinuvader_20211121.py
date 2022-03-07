@@ -48,7 +48,8 @@ buy_params = {
     "low_offset_ema": 1.067,
     "low_offset_ema2": 0.973,
     "high_offset_sell_ema": 0.994,
-    "rsi_buy": 71
+    "rsi_buy": 71,
+    "max_change_pump": 35,
 }
 
 # Sell hyperspace params:
@@ -156,6 +157,8 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
     base_nb_candles_buy_ema2 = IntParameter(5, 80, default=buy_params['base_nb_candles_buy_ema2'], space='buy',
                                             optimize=True)
     low_offset_ema2 = DecimalParameter(0.9, 1.1, default=buy_params['low_offset_ema2'], space='buy', optimize=True)
+
+    max_change_pump = IntParameter(10, 50, default=buy_params['max_change_pump'], space='buy', optimize=True)
 
     # Trailing stop:
     trailing_stop = False
@@ -442,6 +445,9 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
         dataframe['ema_offset_buy2'] = ta.EMA(dataframe,
                                               int(self.base_nb_candles_buy_ema2.value)) * self.low_offset_ema2.value
 
+        # pump detector
+        dataframe['pump'] = pump_warning(dataframe, perc=int(self.max_change_pump.value))
+
         return dataframe
 
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -457,6 +463,8 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
 
         dont_buy_conditions.append((dataframe['trendline'] < 0.995))
         dont_buy_conditions.append((dataframe['relative_price'] > 0.51))
+        # if there's a pump, don't buy
+        dont_buy_conditions.append(dataframe['pump'].rolling(20).max() >= 1)
 
         dataframe.loc[
             (
@@ -783,3 +791,12 @@ def HA(dataframe, smoothing=None):
             df['Smooth_HA_L'] = ta.EMA(df['HA_Low'], sml)
 
     return df
+
+
+def pump_warning(dataframe, perc=15):
+    df = dataframe.copy()
+    df["change"] = df["high"] - df["low"]
+    df["test1"] = (df["close"] > df["open"])
+    df["test2"] = ((df["change"] / df["low"]) > (perc / 100))
+    df["result"] = (df["test1"] & df["test2"]).astype('int')
+    return df['result']
