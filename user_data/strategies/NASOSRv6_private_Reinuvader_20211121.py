@@ -67,6 +67,12 @@ buy_params = {
     "ewolow_enabled": True,
     "clucha_enabled": True,
     "zema_enabled": True,
+    "vwma_enabled": True,
+    "base_nb_candles_buy_vwma": 26,
+    "base_nb_candles_buy_vwma2": 16,
+    "low_offset_vwma": 0.949,
+    "low_offset_vwma2": 0.951,
+    "vwap_enabled": True,
 }
 
 # Sell hyperspace params:
@@ -199,6 +205,19 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
     ewolow_enabled = BooleanParameter(default=buy_params['ewolow_enabled'], space='buy', optimize=True)
     clucha_enabled = BooleanParameter(default=buy_params['clucha_enabled'], space='buy', optimize=True)
     zema_enabled = BooleanParameter(default=buy_params['zema_enabled'], space='buy', optimize=True)
+    vwma_enabled = BooleanParameter(default=buy_params['vwma_enabled'], space='buy', optimize=True)
+
+    optimize_buy_vwma = True
+    base_nb_candles_buy_vwma = IntParameter(5, 80, default=buy_params['base_nb_candles_buy_vwma'], space='buy',
+                                            optimize=optimize_buy_vwma)
+    low_offset_vwma = DecimalParameter(0.9, 0.99, default=buy_params['low_offset_vwma'], space='buy',
+                                       optimize=optimize_buy_vwma)
+    base_nb_candles_buy_vwma2 = IntParameter(5, 80, default=buy_params['base_nb_candles_buy_vwma2'], space='buy',
+                                             optimize=optimize_buy_vwma)
+    low_offset_vwma2 = DecimalParameter(0.9, 0.99, default=buy_params['low_offset_vwma2'], space='buy',
+                                        optimize=optimize_buy_vwma)
+
+    vwap_enabled = BooleanParameter(default=buy_params['vwap_enabled'], space='buy', optimize=True)
 
     # Trailing stop:
     trailing_stop = False
@@ -498,11 +517,25 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
         dataframe['rsi_4'] = ta.RSI(dataframe, timeperiod=4)
         dataframe['rsi_14'] = ta.RSI(dataframe, timeperiod=14)
         dataframe['rsi_20'] = ta.RSI(dataframe, timeperiod=20)
+        dataframe['rsi_36'] = ta.RSI(dataframe, timeperiod=36)
+        dataframe['rsi_84'] = ta.RSI(dataframe, timeperiod=84)
+        dataframe['rsi_112'] = ta.RSI(dataframe, timeperiod=112)
 
         dataframe['sma_15'] = ta.SMA(dataframe, timeperiod=15)
 
         # CTI
         dataframe['cti'] = pta.cti(dataframe["close"], length=20)
+
+        # vwma
+        dataframe['vwma_offset_buy'] = pta.vwma(dataframe["close"], dataframe["volume"],
+                                                int(self.base_nb_candles_buy_vwma.value)) * self.low_offset_vwma.value
+        dataframe['vwma_offset_buy2'] = pta.vwma(dataframe["close"], dataframe["volume"],
+                                                 int(self.base_nb_candles_buy_vwma2.value)) * self.low_offset_vwma2.value
+
+        # vwap
+        vwap_low, vwap, vwap_high = VWAPB(dataframe, 20, 1)
+        dataframe['vwap_low'] = vwap_low
+        dataframe['tcp_percent_4'] = self.top_percent_change(dataframe, 4)
 
         return dataframe
 
@@ -675,6 +708,39 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
                 (dataframe['cti'] < self.nfi32_cti_limit.value)
         )
         dataframe.loc[nfi_32, ['buy', 'buy_tag']] = (1, 'nfi32')
+
+        # vwma
+        buy_offset_vwma = (
+                bool(self.vwma_enabled.value) &
+                (
+                        (
+                                (dataframe['close'] < dataframe['vwma_offset_buy'])
+                                &
+                                (dataframe['pm'] <= dataframe['pmax_thresh'])
+
+                        )
+                        |
+                        (
+                                (dataframe['close'] < dataframe['vwma_offset_buy2'])
+                                &
+                                (dataframe['pm'] > dataframe['pmax_thresh'])
+                        )
+                )
+        )
+        dataframe.loc[buy_offset_vwma, ['buy', 'buy_tag']] = (1, 'vwma')
+
+        # vwap
+        buy_offset_vwap = (
+                bool(self.vwap_enabled.value) &
+                (dataframe['close'] < dataframe['vwap_low']) &
+                (dataframe['tcp_percent_4'] > 0.04) &
+                (dataframe['cti'] < -0.8) &
+                (dataframe['rsi'] < 35) &
+                (dataframe['rsi_84'] < 60) &
+                (dataframe['rsi_112'] < 60) &
+                (dataframe['volume'] > 0)
+        )
+        dataframe.loc[buy_offset_vwap, ['buy', 'buy_tag']] = (1, 'vwap')
 
         return dataframe
 
@@ -884,3 +950,13 @@ def pump_warning(dataframe, perc=15):
     df["test2"] = ((df["change"] / df["low"]) > (perc / 100))
     df["result"] = (df["test1"] & df["test2"]).astype('int')
     return df['result']
+
+
+# VWAP bands
+def VWAPB(dataframe, window_size=20, num_of_std=1):
+    df = dataframe.copy()
+    df['vwap'] = qtpylib.rolling_vwap(df, window=window_size)
+    rolling_std = df['vwap'].rolling(window=window_size).std()
+    df['vwap_low'] = df['vwap'] - (rolling_std * num_of_std)
+    df['vwap_high'] = df['vwap'] + (rolling_std * num_of_std)
+    return df['vwap_low'], df['vwap'], df['vwap_high']
