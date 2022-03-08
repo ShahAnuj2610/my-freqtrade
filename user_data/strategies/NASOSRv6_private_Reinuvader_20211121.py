@@ -62,6 +62,11 @@ buy_params = {
     "nfi32_rsi_14": 15,
     "nfi32_rsi_4": 49,
     "nfi32_sma_factor": 0.93391,
+    "ewo1_enabled": True,
+    "ewo2_enabled": True,
+    "ewolow_enabled": True,
+    "clucha_enabled": True,
+    "zema_enabled": True,
 }
 
 # Sell hyperspace params:
@@ -188,6 +193,12 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
     nfi32_cti_limit = DecimalParameter(-1.2, 0, default=buy_params['nfi32_cti_limit'], decimals=5, space='buy',
                                        optimize=True)
     nfi32_enabled = BooleanParameter(default=buy_params['nfi32_enabled'], space='buy', optimize=True)
+
+    ewo1_enabled = BooleanParameter(default=buy_params['ewo1_enabled'], space='buy', optimize=True)
+    ewo2_enabled = BooleanParameter(default=buy_params['ewo2_enabled'], space='buy', optimize=True)
+    ewolow_enabled = BooleanParameter(default=buy_params['ewolow_enabled'], space='buy', optimize=True)
+    clucha_enabled = BooleanParameter(default=buy_params['clucha_enabled'], space='buy', optimize=True)
+    zema_enabled = BooleanParameter(default=buy_params['zema_enabled'], space='buy', optimize=True)
 
     # Trailing stop:
     trailing_stop = False
@@ -513,6 +524,7 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
 
         dataframe.loc[
             (
+                    bool(self.ewo1_enabled.value) &
                     (dataframe['rsi_fast'] < 35) &
                     (dataframe['rsi_36'] < 0.45) &
                     (dataframe['close'] < (
@@ -527,6 +539,7 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
 
         dataframe.loc[
             (
+                    bool(self.ewo2_enabled.value) &
                     (dataframe['rsi_fast'] < 35) &
                     (dataframe['close'] < (
                             dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset_2.value)) &
@@ -541,6 +554,7 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
 
         dataframe.loc[
             (
+                    bool(self.ewolow_enabled.value) &
                     (dataframe['rsi_fast'] < 35) &
                     (dataframe['close'] < (
                             dataframe[f'ma_buy_{self.base_nb_candles_buy.value}'] * self.low_offset.value)) &
@@ -572,6 +586,7 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
         # This does not fit well the protections for EWO buys.
         dataframe.loc[
             (
+                    bool(self.clucha_enabled.value) &
                     (dataframe['volume'] > 0) &
                     (dataframe['rocr_1h'].gt(self.clucha_rocr_1h.value)) &
                     (
@@ -595,6 +610,7 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
         # This does not fit well the protections for EWO buys.
         dataframe.loc[
             (
+                    bool(self.zema_enabled.value) &
                     (
                             ((dataframe['close'] < dataframe['zema_offset_buy']) & (
                                     dataframe['pm'] <= dataframe['pmax_thresh'])) |
