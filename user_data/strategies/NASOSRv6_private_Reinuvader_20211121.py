@@ -74,6 +74,7 @@ buy_params = {
     "low_offset_vwma2": 0.951,
     "vwap_enabled": True,
     "ewo3_enabled": True,
+    "nfi24_enabled": True,
 }
 
 # Sell hyperspace params:
@@ -221,6 +222,11 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
     vwap_enabled = BooleanParameter(default=buy_params['vwap_enabled'], space='buy', optimize=True)
     ewo3_enabled = BooleanParameter(default=buy_params['ewo3_enabled'], space='buy', optimize=True)
 
+    # nfi24
+    nfi24_enabled = BooleanParameter(default=buy_params['nfi24_enabled'], space='buy', optimize=True)
+    buy_24_rsi_14_max = 50.0
+    buy_24_rsi_14_1h_min = 66.9
+
     # Trailing stop:
     trailing_stop = False
     # trailing_stop_positive = 0.001
@@ -366,6 +372,10 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
         inf_heikinashi = qtpylib.heikinashi(informative)
         informative['ha_close'] = inf_heikinashi['close']
         informative['rocr'] = ta.ROCR(informative['ha_close'], timeperiod=168)
+        informative['ema_12'] = ta.EMA(informative, timeperiod=12)
+        informative['ema_35'] = ta.EMA(informative, timeperiod=35)
+        informative['rsi_14'] = ta.RSI(informative, timeperiod=14)
+        informative['cmf'] = chaikin_money_flow(informative, 20)
         return informative
 
     def top_percent_change(self, dataframe: DataFrame, length: int) -> float:
@@ -536,6 +546,9 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
         # TEMA - Triple Exponential Moving Average
         dataframe['tema'] = ta.TEMA(dataframe, timeperiod=9)
         dataframe['cci'] = ta.CCI(dataframe, 26)
+
+        # CMF
+        dataframe['cmf'] = chaikin_money_flow(dataframe, 20)
 
         return dataframe
 
@@ -761,6 +774,18 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
         )
         dataframe.loc[ewo3, ['buy', 'buy_tag']] = (1, 'ewo3')
 
+        # nfi24
+        nfi24 = (
+                bool(self.nfi24_enabled.value) &
+                (dataframe['ema_12_1h'].shift(12) < dataframe['ema_35_1h'].shift(12)) &
+                (dataframe['ema_12_1h'] > dataframe['ema_35_1h']) &
+                (dataframe['cmf_1h'].shift(12) < 0) &
+                (dataframe['cmf_1h'] > 0) &
+                (dataframe['rsi_14'] < self.buy_24_rsi_14_max) &
+                (dataframe['rsi_14_1h'] > self.buy_24_rsi_14_1h_min)
+        )
+        dataframe.loc[nfi24, ['buy', 'buy_tag']] = (1, 'nfi24')
+
         return dataframe
 
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -979,3 +1004,26 @@ def VWAPB(dataframe, window_size=20, num_of_std=1):
     df['vwap_low'] = df['vwap'] - (rolling_std * num_of_std)
     df['vwap_high'] = df['vwap'] + (rolling_std * num_of_std)
     return df['vwap_low'], df['vwap'], df['vwap_high']
+
+
+# Chaikin Money Flow
+def chaikin_money_flow(dataframe, n=20, fillna=False) -> Series:
+    """Chaikin Money Flow (CMF)
+    It measures the amount of Money Flow Volume over a specific period.
+    http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:chaikin_money_flow_cmf
+    Args:
+        dataframe(pandas.Dataframe): dataframe containing ohlcv
+        n(int): n period.
+        fillna(bool): if True, fill nan values.
+    Returns:
+        pandas.Series: New feature generated.
+    """
+    mfv = ((dataframe['close'] - dataframe['low']) - (dataframe['high'] - dataframe['close'])) / (
+            dataframe['high'] - dataframe['low'])
+    mfv = mfv.fillna(0.0)  # float division by zero
+    mfv *= dataframe['volume']
+    cmf = (mfv.rolling(n, min_periods=0).sum()
+           / dataframe['volume'].rolling(n, min_periods=0).sum())
+    if fillna:
+        cmf = cmf.replace([np.inf, -np.inf], np.nan).fillna(0)
+    return Series(cmf, name='cmf')
