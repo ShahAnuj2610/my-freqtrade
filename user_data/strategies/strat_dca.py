@@ -125,3 +125,9 @@ class strat_dca(tbedit):
             return True
 
         return False
+
+    def confirm_trade_entry(self, pair: str, order_type: str, amount: float, rate: float,
+                            time_in_force: str, current_time: datetime, entry_tag: Optional[str],
+                            **kwargs) -> bool:
+        # no more trades
+        return False
