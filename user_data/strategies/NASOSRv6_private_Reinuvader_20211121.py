@@ -73,6 +73,7 @@ buy_params = {
     "low_offset_vwma": 0.949,
     "low_offset_vwma2": 0.951,
     "vwap_enabled": True,
+    "ewo3_enabled": True,
 }
 
 # Sell hyperspace params:
@@ -218,6 +219,7 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
                                         optimize=optimize_buy_vwma)
 
     vwap_enabled = BooleanParameter(default=buy_params['vwap_enabled'], space='buy', optimize=True)
+    ewo3_enabled = BooleanParameter(default=buy_params['ewo3_enabled'], space='buy', optimize=True)
 
     # Trailing stop:
     trailing_stop = False
@@ -526,16 +528,14 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
         # CTI
         dataframe['cti'] = pta.cti(dataframe["close"], length=20)
 
-        # vwma
-        dataframe['vwma_offset_buy'] = pta.vwma(dataframe["close"], dataframe["volume"],
-                                                int(self.base_nb_candles_buy_vwma.value)) * self.low_offset_vwma.value
-        dataframe['vwma_offset_buy2'] = pta.vwma(dataframe["close"], dataframe["volume"],
-                                                 int(self.base_nb_candles_buy_vwma2.value)) * self.low_offset_vwma2.value
-
         # vwap
         vwap_low, vwap, vwap_high = VWAPB(dataframe, 20, 1)
         dataframe['vwap_low'] = vwap_low
         dataframe['tcp_percent_4'] = self.top_percent_change(dataframe, 4)
+
+        # TEMA - Triple Exponential Moving Average
+        dataframe['tema'] = ta.TEMA(dataframe, timeperiod=9)
+        dataframe['cci'] = ta.CCI(dataframe, 26)
 
         return dataframe
 
@@ -710,6 +710,10 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
         dataframe.loc[nfi_32, ['buy', 'buy_tag']] = (1, 'nfi32')
 
         # vwma
+        dataframe['vwma_offset_buy'] = pta.vwma(dataframe["close"], dataframe["volume"],
+                                                int(self.base_nb_candles_buy_vwma.value)) * self.low_offset_vwma.value
+        dataframe['vwma_offset_buy2'] = pta.vwma(dataframe["close"], dataframe["volume"],
+                                                 int(self.base_nb_candles_buy_vwma2.value)) * self.low_offset_vwma2.value
         buy_offset_vwma = (
                 bool(self.vwma_enabled.value) &
                 (
@@ -741,6 +745,21 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
                 (dataframe['volume'] > 0)
         )
         dataframe.loc[buy_offset_vwap, ['buy', 'buy_tag']] = (1, 'vwap')
+
+        # ewo3
+        ewo3 = (
+                bool(self.ewo3_enabled.value) &
+                (qtpylib.crossed_above(dataframe['rsi_fast'], dataframe['rsi_slow'])) &
+                (dataframe['open'] < dataframe['lower']) &
+                (dataframe['tema'] < dataframe['mid']) &
+                (dataframe['cci'] < -100) &
+                (
+                        (dataframe['EWO'] < -19.993) |
+                        (dataframe['EWO'] > 5.638)
+                ) &
+                (dataframe['volume'] > 0)
+        )
+        dataframe.loc[ewo3, ['buy', 'buy_tag']] = (1, 'ewo3')
 
         return dataframe
 
