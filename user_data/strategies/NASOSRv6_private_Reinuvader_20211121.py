@@ -75,6 +75,7 @@ buy_params = {
     "vwap_enabled": True,
     "ewo3_enabled": True,
     "nfi24_enabled": True,
+    "keltner_enabled": True,
 }
 
 # Sell hyperspace params:
@@ -226,6 +227,9 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
     nfi24_enabled = BooleanParameter(default=buy_params['nfi24_enabled'], space='buy', optimize=True)
     buy_24_rsi_14_max = 50.0
     buy_24_rsi_14_1h_min = 66.9
+
+    # keltner channel
+    keltner_enabled = BooleanParameter(default=buy_params['keltner_enabled'], space='buy', optimize=True)
 
     # Trailing stop:
     trailing_stop = False
@@ -550,6 +554,15 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
         # CMF
         dataframe['cmf'] = chaikin_money_flow(dataframe, 20)
 
+        # keltner
+        keltner = qtpylib.keltner_channel(dataframe, window=20, atrs=1)
+        dataframe["kc_upperband"] = keltner["upper"]
+        dataframe["kc_lowerband"] = keltner["lower"]
+        dataframe["kc_middleband"] = keltner["mid"]
+        # Horizontal RSI line
+        hline = 55
+        dataframe['hline'] = hline
+
         return dataframe
 
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -785,6 +798,14 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
                 (dataframe['rsi_14_1h'] > self.buy_24_rsi_14_1h_min)
         )
         dataframe.loc[nfi24, ['buy', 'buy_tag']] = (1, 'nfi24')
+
+        # keltner
+        keltner = (
+                bool(self.keltner_enabled.value) &
+                (qtpylib.crossed_above(dataframe['close'], dataframe['kc_upperband']))
+                & (dataframe["rsi"] > dataframe['hline'])
+        )
+        dataframe.loc[keltner, ['buy', 'buy_tag']] = (1, 'keltner')
 
         return dataframe
 
