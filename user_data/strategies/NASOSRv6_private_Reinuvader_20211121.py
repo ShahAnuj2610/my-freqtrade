@@ -76,6 +76,11 @@ buy_params = {
     "ewo3_enabled": True,
     "nfi24_enabled": True,
     "keltner_enabled": True,
+    "gumbo_enabled": True,
+    "buy_gumbo_ema": 1.121,
+    "buy_gumbo_ewo_low": -9.442,
+    "buy_gumbo_cti": -0.374,
+    "buy_gumbo_r14": -51.971,
 }
 
 # Sell hyperspace params:
@@ -231,6 +236,15 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
     # keltner channel
     keltner_enabled = BooleanParameter(default=buy_params['keltner_enabled'], space='buy', optimize=True)
 
+    # gumbo
+    is_optimize_gumbo = True
+    gumbo_enabled = BooleanParameter(default=buy_params['gumbo_enabled'], space='buy', optimize=True)
+    buy_gumbo_ema = DecimalParameter(0.9, 1.2, default=0.97, optimize=is_optimize_gumbo)
+    buy_gumbo_ewo_low = DecimalParameter(-12.0, 5, default=-5.585, optimize=is_optimize_gumbo)
+    is_optimize_gumbo_protection = True
+    buy_gumbo_cti = DecimalParameter(-0.9, -0.0, default=-0.5, optimize=is_optimize_gumbo_protection)
+    buy_gumbo_r14 = DecimalParameter(-100, -44, default=-60, optimize=is_optimize_gumbo_protection)
+
     # Trailing stop:
     trailing_stop = False
     # trailing_stop_positive = 0.001
@@ -380,6 +394,17 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
         informative['ema_35'] = ta.EMA(informative, timeperiod=35)
         informative['rsi_14'] = ta.RSI(informative, timeperiod=14)
         informative['cmf'] = chaikin_money_flow(informative, 20)
+
+        bollinger2 = qtpylib.bollinger_bands(qtpylib.typical_price(informative), window=20, stds=2)
+        informative['bb_lowerband2'] = bollinger2['lower']
+        informative['bb_middleband2'] = bollinger2['mid']
+        informative['bb_upperband2'] = bollinger2['upper']
+        informative['bb_width'] = (
+                (informative['bb_upperband2'] - informative['bb_lowerband2']) / informative[
+            'bb_middleband2'])
+
+        informative['T3'] = T3(informative)
+
         return informative
 
     def top_percent_change(self, dataframe: DataFrame, length: int) -> float:
@@ -562,6 +587,16 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
         # Horizontal RSI line
         hline = 55
         dataframe['hline'] = hline
+
+        # Williams %R
+        dataframe['r_14'] = williams_r(dataframe, period=14)
+        dataframe['r_32'] = williams_r(dataframe, period=32)
+        dataframe['r_64'] = williams_r(dataframe, period=64)
+        dataframe['r_96'] = williams_r(dataframe, period=96)
+        dataframe['r_480'] = williams_r(dataframe, period=480)
+
+        # T3
+        dataframe['T3'] = T3(dataframe)
 
         return dataframe
 
@@ -807,6 +842,17 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
         )
         dataframe.loc[keltner, ['buy', 'buy_tag']] = (1, 'keltner')
 
+        # gumbo
+        gumbo = (
+                bool(self.gumbo_enabled.value) &
+                (dataframe['EWO'] < self.buy_gumbo_ewo_low.value) &
+                (dataframe['bb_middleband2_1h'] >= dataframe['T3_1h']) &
+                (dataframe['T3'] <= dataframe['ema_8'] * self.buy_gumbo_ema.value) &
+                (dataframe['cti'] < self.buy_gumbo_cti.value) &
+                (dataframe['r_14'] < self.buy_gumbo_r14.value)
+        )
+        dataframe.loc[gumbo, ['buy', 'buy_tag']] = (1, 'gumbo')
+
         return dataframe
 
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -860,7 +906,7 @@ def normalize(data, min_value, max_value):
     return (data - min_value) / (max_value - min_value)
 
 
-def williams_r(dataframe: DataFrame, timeperiod: int = 14) -> Series:
+def williams_r(dataframe: DataFrame, period: int = 14) -> Series:
     """Williams %R, or just %R, is a technical analysis oscillator showing the current closing price in relation to the high and low
         of the past N days (for a given N). It was developed by a publisher and promoter of trading materials, Larry Williams.
         Its purpose is to tell whether a stock or commodity market is trading near the high or the low, or somewhere in between,
@@ -868,12 +914,12 @@ def williams_r(dataframe: DataFrame, timeperiod: int = 14) -> Series:
         The oscillator is on a negative scale, from −100 (lowest) up to 0 (highest).
     """
 
-    highest_high = dataframe["high"].rolling(center=False, window=timeperiod).max()
-    lowest_low = dataframe["low"].rolling(center=False, window=timeperiod).min()
+    highest_high = dataframe["high"].rolling(center=False, window=period).max()
+    lowest_low = dataframe["low"].rolling(center=False, window=period).min()
 
     WR = Series(
         (highest_high - dataframe["close"]) / (highest_high - lowest_low),
-        name=f"{timeperiod} Williams %R",
+        name=f"{period} Williams %R",
     )
 
     return WR * -100
@@ -1048,3 +1094,26 @@ def chaikin_money_flow(dataframe, n=20, fillna=False) -> Series:
     if fillna:
         cmf = cmf.replace([np.inf, -np.inf], np.nan).fillna(0)
     return Series(cmf, name='cmf')
+
+
+def T3(dataframe, length=5):
+    """
+    T3 Average by HPotter on Tradingview
+    https://www.tradingview.com/script/qzoC9H1I-T3-Average/
+    """
+    df = dataframe.copy()
+
+    df['xe1'] = ta.EMA(df['close'], timeperiod=length)
+    df['xe2'] = ta.EMA(df['xe1'], timeperiod=length)
+    df['xe3'] = ta.EMA(df['xe2'], timeperiod=length)
+    df['xe4'] = ta.EMA(df['xe3'], timeperiod=length)
+    df['xe5'] = ta.EMA(df['xe4'], timeperiod=length)
+    df['xe6'] = ta.EMA(df['xe5'], timeperiod=length)
+    b = 0.7
+    c1 = -b * b * b
+    c2 = 3 * b * b + 3 * b * b * b
+    c3 = -6 * b * b - 3 * b - 3 * b * b * b
+    c4 = 1 + 3 * b + b * b * b + 3 * b * b
+    df['T3Average'] = c1 * df['xe6'] + c2 * df['xe5'] + c3 * df['xe4'] + c4 * df['xe3']
+
+    return df['T3Average']
