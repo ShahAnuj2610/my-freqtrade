@@ -81,6 +81,10 @@ buy_params = {
     "buy_gumbo_ewo_low": -9.442,
     "buy_gumbo_cti": -0.374,
     "buy_gumbo_r14": -51.971,
+    "nfix_39_enabled": True,
+    "buy_nfix_39_ema": 0.912,
+    "nfi7_33_enabled": True,
+    "nfi_38_enabled": True,
 }
 
 # Sell hyperspace params:
@@ -245,6 +249,16 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
     buy_gumbo_cti = DecimalParameter(-0.9, -0.0, default=-0.5, optimize=is_optimize_gumbo_protection)
     buy_gumbo_r14 = DecimalParameter(-100, -44, default=-60, optimize=is_optimize_gumbo_protection)
 
+    # nfix_39
+    nfix_39_enabled = BooleanParameter(default=buy_params['nfix_39_enabled'], space='buy', optimize=True)
+    buy_nfix_39_ema = DecimalParameter(0.9, 1.2, default=0.97, optimize=True)
+
+    # nfi7_33
+    nfi7_33_enabled = BooleanParameter(default=buy_params['nfi7_33_enabled'], space='buy', optimize=True)
+
+    # nfi_38
+    nfi_38_enabled = BooleanParameter(default=buy_params['nfi_38_enabled'], space='buy', optimize=True)
+
     # Trailing stop:
     trailing_stop = False
     # trailing_stop_positive = 0.001
@@ -313,8 +327,20 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
 
     def custom_sell(self, pair: str, trade: 'Trade', current_time: 'datetime', current_rate: float,
                     current_profit: float, **kwargs):
+        dataframe, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
+
+        last_candle = dataframe.iloc[-1]
         if ((current_time - trade.open_date_utc).seconds / 60 > 1440):
             return 'unclog'
+            # main sell
+
+        if current_profit > 0.02:
+            if (last_candle['momdiv_sell_1h'] == True):
+                return f"signal_profit_q_momdiv_1h"
+            if (last_candle['momdiv_sell'] == True):
+                return f"signal_profit_q_momdiv"
+            if (last_candle['momdiv_coh'] == True):
+                return f"signal_profit_q_momdiv_coh"
 
     def custom_stoploss(self, pair: str, trade: 'Trade', current_time: datetime,
                         current_rate: float, current_profit: float, **kwargs) -> float:
@@ -404,6 +430,21 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
             'bb_middleband2'])
 
         informative['T3'] = T3(informative)
+        informative['ema_200'] = ta.EMA(informative, timeperiod=200)
+
+        # CRSI (3, 2, 100)
+        crsi_closechange = informative['close'] / informative['close'].shift(1)
+        crsi_updown = np.where(crsi_closechange.gt(1), 1.0, np.where(crsi_closechange.lt(1), -1.0, 0.0))
+        informative['crsi'] = (ta.RSI(informative['close'], timeperiod=3) + ta.RSI(crsi_updown,
+                                                                                   timeperiod=2) + ta.ROC(
+            informative['close'], 100)) / 3
+
+        # MOMDIV
+        mom = momdiv(informative)
+        informative['momdiv_buy'] = mom['momdiv_buy']
+        informative['momdiv_sell'] = mom['momdiv_sell']
+        informative['momdiv_coh'] = mom['momdiv_coh']
+        informative['momdiv_col'] = mom['momdiv_col']
 
         return informative
 
@@ -597,6 +638,41 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
 
         # T3
         dataframe['T3'] = T3(dataframe)
+
+        ## BB 40
+        bollinger2_40 = qtpylib.bollinger_bands(ha_typical_price(dataframe), window=40, stds=2)
+        dataframe['bb_lowerband2_40'] = bollinger2_40['lower']
+        dataframe['bb_middleband2_40'] = bollinger2_40['mid']
+        dataframe['bb_upperband2_40'] = bollinger2_40['upper']
+        dataframe['bb_delta_cluc'] = (dataframe['bb_middleband2_40'] - dataframe['bb_lowerband2_40']).abs()
+
+        dataframe['closedelta'] = (dataframe['close'] - dataframe['close'].shift()).abs()
+
+        dataframe['ema_13'] = ta.EMA(dataframe, timeperiod=13)
+
+        # Modified Elder Ray Index
+        dataframe['moderi_96'] = moderi(dataframe, 96)
+
+        # Volume
+        dataframe['volume_mean_4'] = dataframe['volume'].rolling(4).mean().shift(1)
+        dataframe['volume_mean_12'] = dataframe['volume'].rolling(12).mean().shift(1)
+        dataframe['volume_mean_24'] = dataframe['volume'].rolling(24).mean().shift(1)
+
+        # SMA
+        dataframe['sma_9'] = ta.SMA(dataframe, timeperiod=9)
+        dataframe['sma_15'] = ta.SMA(dataframe, timeperiod=15)
+        dataframe['sma_20'] = ta.SMA(dataframe, timeperiod=20)
+        dataframe['sma_21'] = ta.SMA(dataframe, timeperiod=21)
+        dataframe['sma_28'] = ta.SMA(dataframe, timeperiod=28)
+        dataframe['sma_30'] = ta.SMA(dataframe, timeperiod=30)
+        dataframe['sma_75'] = ta.SMA(dataframe, timeperiod=75)
+
+        # MOMDIV
+        mom = momdiv(dataframe)
+        dataframe['momdiv_buy'] = mom['momdiv_buy']
+        dataframe['momdiv_sell'] = mom['momdiv_sell']
+        dataframe['momdiv_coh'] = mom['momdiv_coh']
+        dataframe['momdiv_col'] = mom['momdiv_col']
 
         return dataframe
 
@@ -852,6 +928,45 @@ class NASOSRv6_private_Reinuvader_20211121(IStrategy):
                 (dataframe['r_14'] < self.buy_gumbo_r14.value)
         )
         dataframe.loc[gumbo, ['buy', 'buy_tag']] = (1, 'gumbo')
+
+        # nfix_39
+        nfix_39 = (
+                bool(self.nfix_39_enabled.value) &
+                (dataframe['ema_200_1h'] > dataframe['ema_200_1h'].shift(12)) &
+                (dataframe['ema_200_1h'].shift(12) > dataframe['ema_200_1h'].shift(24)) &
+                (dataframe['bb_lowerband2_40'].shift().gt(0)) &
+                (dataframe['bb_delta_cluc'].gt(dataframe['close'] * 0.056)) &
+                (dataframe['closedelta'].gt(dataframe['close'] * 0.01)) &
+                (dataframe['tail'].lt(dataframe['bb_delta_cluc'] * 0.5)) &
+                (dataframe['close'].lt(dataframe['bb_lowerband2_40'].shift())) &
+                (dataframe['close'].le(dataframe['close'].shift())) &
+                (dataframe['close'] > dataframe['ema_13'] * self.buy_nfix_39_ema.value)
+        )
+        dataframe.loc[nfix_39, ['buy', 'buy_tag']] = (1, 'nfix_39')
+
+        # nfi7_33
+        nfi7_33 = (
+                bool(self.nfi7_33_enabled.value) &
+                (dataframe['moderi_96']) &
+                (dataframe['cti'] < -0.88) &
+                (dataframe['close'] < (dataframe['ema_13'] * 0.988)) &
+                (dataframe['EWO'] > 6.4) &
+                (dataframe['rsi'] < 32.0) &
+                (dataframe['volume'] < (dataframe['volume_mean_4'] * 2.0))
+        )
+        dataframe.loc[nfi7_33, ['buy', 'buy_tag']] = (1, 'nfi7_33')
+
+        # nfi_38
+        nfi_38 = (
+                bool(self.nfi_38_enabled.value) &
+                (dataframe['pm'] > dataframe['pmax_thresh']) &
+                (dataframe['close'] < dataframe['sma_75'] * 0.98) &
+                (dataframe['EWO'] < -4.4) &
+                (dataframe['cti'] < -0.95) &
+                (dataframe['r_14'] < -97) &
+                (dataframe['crsi_1h'] > 0.5)
+        )
+        dataframe.loc[nfi_38, ['buy', 'buy_tag']] = (1, 'nfi_38')
 
         return dataframe
 
@@ -1117,3 +1232,41 @@ def T3(dataframe, length=5):
     df['T3Average'] = c1 * df['xe6'] + c2 * df['xe5'] + c3 * df['xe4'] + c4 * df['xe3']
 
     return df['T3Average']
+
+
+# Modified Elder Ray Index
+def moderi(dataframe: DataFrame, len_slow_ma: int = 32) -> Series:
+    slow_ma = Series(ta.EMA(vwma(dataframe, length=len_slow_ma), timeperiod=len_slow_ma))
+    return slow_ma >= slow_ma.shift(1)  # we just need true & false for ERI trend
+
+
+# Volume Weighted Moving Average
+def vwma(dataframe: DataFrame, length: int = 10):
+    """Indicator: Volume Weighted Moving Average (VWMA)"""
+    # Calculate Result
+    pv = dataframe['close'] * dataframe['volume']
+    vwma = Series(ta.SMA(pv, timeperiod=length) / ta.SMA(dataframe['volume'], timeperiod=length))
+    return vwma
+
+
+# Mom DIV
+def momdiv(dataframe: DataFrame, mom_length: int = 10, bb_length: int = 20, bb_dev: float = 2.0,
+           lookback: int = 30) -> DataFrame:
+    mom: Series = ta.MOM(dataframe, timeperiod=mom_length)
+    upperband, middleband, lowerband = ta.BBANDS(mom, timeperiod=bb_length, nbdevup=bb_dev, nbdevdn=bb_dev, matype=0)
+    buy = qtpylib.crossed_below(mom, lowerband)
+    sell = qtpylib.crossed_above(mom, upperband)
+    hh = dataframe['high'].rolling(lookback).max()
+    ll = dataframe['low'].rolling(lookback).min()
+    coh = dataframe['high'] >= hh
+    col = dataframe['low'] <= ll
+    df = DataFrame({
+        "momdiv_mom": mom,
+        "momdiv_upperb": upperband,
+        "momdiv_lowerb": lowerband,
+        "momdiv_buy": buy,
+        "momdiv_sell": sell,
+        "momdiv_coh": coh,
+        "momdiv_col": col,
+    }, index=dataframe['close'].index)
+    return df
