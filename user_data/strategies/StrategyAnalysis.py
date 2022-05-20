@@ -8,6 +8,14 @@ from freqtrade.strategy.interface import IStrategy
 
 logger = logging.getLogger(__name__)
 
+"""
+Usage:
+StrategyAnalysis(YourStrategyClass)
+
+Note:
+If you're using a hyperopt json file, change the name of the class to "StrategyAnalysis" in the file.
+"""
+
 
 def colored(param, color):
     color_codes = {
