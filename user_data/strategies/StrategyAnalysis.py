@@ -71,6 +71,33 @@ class StrategyAnalysis(IStrategy):
             )
             # logger.info(f"{pair} took {datetime.now() - start_time} to send telegram message")
 
+        if 'discord' in self.config and self.config['discord']['enabled'] == True:
+            profit_rate = trade.close_rate if trade.close_rate else trade.close_rate_requested
+            profit_trade = trade.calc_profit(rate=profit_rate)
+            profit_ratio = trade.calc_profit_ratio(profit_rate)
+            gain = "profit" if profit_ratio > 0 else "loss"
+
+            msg = {
+                'trade_id': trade.id,
+                'exchange': trade.exchange.capitalize(),
+                'pair': trade.pair,
+                'gain': gain,
+                'limit': profit_rate,
+                'order_type': order_type,
+                'amount': trade.amount,
+                'open_rate': trade.open_rate,
+                'close_rate': trade.close_rate,
+                'profit_amount': profit_trade,
+                'profit_ratio': profit_ratio,
+                'buy_tag': trade.buy_tag,
+                'sell_reason': trade.sell_reason,
+                'open_date': trade.open_date,
+                'close_date': trade.close_date or datetime.utcnow(),
+                'stake_currency': self.config['stake_currency'],
+                'fiat_currency': self.config.get('fiat_display_currency', None),
+            }
+            self.discord_send(msg)
+
         return trade_exit_parent
 
     def telegram_send(self, message):
@@ -78,6 +105,15 @@ class StrategyAnalysis(IStrategy):
             bot_token = self.config['telegram']['token']
             bot_chatID = self.config['telegram']['chat_id']
             send_text = 'https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + bot_chatID + '&parse_mode=Markdown&text=' + message
+
+            threading.Thread(target=requests.get, args=(send_text,)).start()
+
+    def discord_send(self, message):
+        if self.config['runmode'].value in ('dry_run', 'live') and 'discord' in self.config and \
+                self.config['discord']['enabled'] == True:
+            bot_token = self.config['discord']['token']
+            bot_chatID = self.config['discord']['chat_id']
+            send_text = 'https://discordapp.com/api/webhooks/' + bot_chatID + '/' + bot_token + '?content=' + message
 
             threading.Thread(target=requests.get, args=(send_text,)).start()
 
