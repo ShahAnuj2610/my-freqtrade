@@ -1,3 +1,4 @@
+import json
 import logging
 import threading
 from datetime import datetime
@@ -72,31 +73,7 @@ class StrategyAnalysis(IStrategy):
             # logger.info(f"{pair} took {datetime.now() - start_time} to send telegram message")
 
         if 'discord' in self.config and self.config['discord']['enabled'] == True:
-            profit_rate = trade.close_rate if trade.close_rate else trade.close_rate_requested
-            profit_trade = trade.calc_profit(rate=profit_rate)
-            profit_ratio = trade.calc_profit_ratio(profit_rate)
-            gain = "profit" if profit_ratio > 0 else "loss"
-
-            msg = {
-                'trade_id': trade.id,
-                'exchange': trade.exchange.capitalize(),
-                'pair': trade.pair,
-                'gain': gain,
-                'limit': profit_rate,
-                'order_type': order_type,
-                'amount': trade.amount,
-                'open_rate': trade.open_rate,
-                'close_rate': trade.close_rate,
-                'profit_amount': profit_trade,
-                'profit_ratio': profit_ratio,
-                'buy_tag': trade.buy_tag,
-                'sell_reason': trade.sell_reason,
-                'open_date': trade.open_date,
-                'close_date': trade.close_date or datetime.utcnow(),
-                'stake_currency': self.config['stake_currency'],
-                'fiat_currency': self.config.get('fiat_display_currency', None),
-            }
-            self.discord_send(msg)
+            self.discord_send(trade)
 
         return trade_exit_parent
 
@@ -108,14 +85,50 @@ class StrategyAnalysis(IStrategy):
 
             threading.Thread(target=requests.get, args=(send_text,)).start()
 
-    def discord_send(self, message):
-        if self.config['runmode'].value in ('dry_run', 'live') and 'discord' in self.config and \
-                self.config['discord']['enabled'] == True:
-            bot_token = self.config['discord']['token']
-            bot_chatID = self.config['discord']['chat_id']
-            send_text = 'https://discordapp.com/api/webhooks/' + bot_chatID + '/' + bot_token + '?content=' + message
-
-            threading.Thread(target=requests.get, args=(send_text,)).start()
-
     def log(self, param, color):
         logger.info(colored(param, color))
+
+    def discord_send(self, trade: Trade):
+        if self.config['runmode'].value in ('dry_run', 'live') and self.config['discord']['enabled'] == True:
+            webhook_url = self.config['discord']['webhook_url']
+            # TODO: fix profit and sell_reason
+            profit = trade.calc_profit_ratio()
+            gain = "profit" if profit > 0 else "loss"
+            embeds = [
+                {
+                    "title": f"{trade.pair} {gain}",
+                    "description": f"{trade.pair} {gain} {profit * 100:.2f}%",
+                    "color": 0x00ff00 if gain == "profit" else 0xff0000,
+                    "fields": [
+                        {
+                            "name": "Open",
+                            "value": f"{trade.open_rate:.8f}",
+                            "inline": True
+                        },
+                        {
+                            "name": "Profit",
+                            "value": f"{profit * 100:.2f}%",
+                            "inline": True
+                        },
+                        {
+                            "name": "Buy Tag",
+                            "value": f"{trade.buy_tag}",
+                            "inline": True
+                        },
+                        {
+                            "name": "Sell Tag",
+                            "value": f"{trade.sell_reason}",
+                            "inline": True
+                        }
+                    ]
+                }
+            ]
+
+            payload = {
+                "embeds": embeds
+            }
+
+            threading.Thread(target=requests.post, args=(webhook_url,), kwargs={"data": json.dumps(payload),
+                                                                                "headers": {
+                                                                                    "Content-Type": "application/json"
+                                                                                }}).start()
